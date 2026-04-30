@@ -11,26 +11,20 @@ A continuación se muestran las imágenes conceptuales que guían el diseño vis
 ---
 
 ### 🎭 Diseño
-Bocetos, mockups y referencias visuales del estilo artístico, paleta de colores e identidad gráfica del juego.
+Bocetos y referencias visuales del estilo artístico del juego, incluyendo el concepto del enfrentamiento contra el Kraken.
 
-![Diseño - Concept Art](src/assets/concept/diseno/concept_art.png)
+![Pelea contra el Kraken](src/assets/concept/diseno/Pelea%20Kraken.png)
 
 ---
 
 ### ⚔️ Combate
-Referencias de combate: pelea contra el Kraken (boss final estilo *bullet hell*) y arena de combate en tiempo real renderizada sobre HTML5 Canvas con sistema de cartas de Acción.
+Arena de combate en tiempo real renderizada sobre HTML5 Canvas con sistema de cartas de Acción.
 
-![Pelea contra el Kraken](src/assets/concept/combate/kraken_fight.png)
-
-![Sistema de Peleas](src/assets/concept/combate/combat_system.png)
+![Sistema de Peleas](src/assets/concept/combate/Peleas.png)
 
 ---
 
 ### 🗺️ Exploración
-Sistema de islas: mapa basado en nodos donde cada isla dispara eventos por probabilidad (RNG) — botín, cartas o peligros.
+Mapa de islas basado en nodos donde cada isla dispara eventos por probabilidad (RNG): botín, cartas o peligros.
 
-![Sistema de Islas](src/assets/concept/exploracion/island_system.png)
-
----
-
-> 📌 **Nota:** Las imágenes deben colocarse en las subcarpetas correspondientes dentro de `src/assets/concept/` (`diseno/`, `combate/`, `exploracion/`) con los nombres indicados en cada referencia.
+![Sistema de Islas](src/assets/concept/exploracion/Sistema%20de%20islas.png)
