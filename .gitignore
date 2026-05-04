@@ -1,0 +1,13 @@
+# Dependencias
+node_modules/
+
+# Archivos auto-generados y logs
+dist/
+dist-ssr/
+*.log
+pnpm-debug.log*
+
+# Archivos de entorno y editor
+.env
+.env.*
+.DS_Store
