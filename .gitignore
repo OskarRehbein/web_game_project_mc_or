@@ -11,3 +11,6 @@ pnpm-debug.log*
 .env
 .env.*
 .DS_Store
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
