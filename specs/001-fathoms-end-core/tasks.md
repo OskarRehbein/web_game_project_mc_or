@@ -16,14 +16,14 @@
 
 **Objetivo**: Inicializar el proyecto completo con todas las herramientas configuradas y listas para desarrollar.
 
-- [ ] T001 Crear estructura de carpetas del proyecto según plan.md sección 2 (`src/engine`, `src/components`, `src/views`, `src/stores`, `src/router`, `src/assets/data`, `src/assets/sprites`, `src/assets/ui`, `tests/unit/engine`, `tests/unit/stores`)
-- [ ] T002 Actualizar `package.json` con todas las dependencias: Vue 3, PixiJS v8, Pinia, Vue Router 4 como deps; Vitest, `@vitest/coverage-v8`, `@vue/test-utils`, `@pinia/testing`, `jsdom`, ESLint, `eslint-plugin-vue` como devDeps; agregar scripts `dev`, `build`, `preview`, `test`, `test:coverage`, `lint` en `package.json`
-- [ ] T003 [P] Configurar Vite con alias `@` apuntando a `src/` y plugin `@vitejs/plugin-vue` en `vite.config.js`
-- [ ] T004 [P] Configurar Vitest con entorno `jsdom`, coverage provider `v8` y soporte de alias `@` en `vitest.config.js`
-- [ ] T005 [P] Configurar ESLint con `eslint-plugin-vue` y reglas `vue3-recommended` en `eslint.config.js`
-- [ ] T006 [P] Crear `Dockerfile` con build multi-etapa (Node 22 para build, Nginx Alpine para serve) y `.dockerignore` en raíz del repositorio
-- [ ] T007 [P] Crear workflow CI/CD en `.github/workflows/ci.yml` con jobs: `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test --coverage` → `pnpm build` (objetivo: < 5 min por push)
-- [ ] T008 Crear punto de entrada de la aplicación `src/main.js` con `createApp(App)` + Pinia (`createPinia()`) + Vue Router montados sobre `#app`; crear `src/App.vue` con `<RouterView />`
+- [X] T001 Crear estructura de carpetas del proyecto según plan.md sección 2 (`src/engine`, `src/components`, `src/views`, `src/stores`, `src/router`, `src/assets/data`, `src/assets/sprites`, `src/assets/ui`, `tests/unit/engine`, `tests/unit/stores`)
+- [X] T002 Actualizar `package.json` con todas las dependencias: Vue 3, PixiJS v8, Pinia, Vue Router 4 como deps; Vitest, `@vitest/coverage-v8`, `@vue/test-utils`, `@pinia/testing`, `jsdom`, ESLint, `eslint-plugin-vue` como devDeps; agregar scripts `dev`, `build`, `preview`, `test`, `test:coverage`, `lint` en `package.json`
+- [X] T003 [P] Configurar Vite con alias `@` apuntando a `src/` y plugin `@vitejs/plugin-vue` en `vite.config.js`
+- [X] T004 [P] Configurar Vitest con entorno `jsdom`, coverage provider `v8` y soporte de alias `@` en `vitest.config.js`
+- [X] T005 [P] Configurar ESLint con `eslint-plugin-vue` y reglas `vue3-recommended` en `eslint.config.js`
+- [X] T006 [P] Crear `Dockerfile` con build multi-etapa (Node 22 para build, Nginx Alpine para serve) y `.dockerignore` en raíz del repositorio
+- [X] T007 [P] Crear workflow CI/CD en `.github/workflows/ci.yml` con jobs: `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm test --coverage` → `pnpm build` (objetivo: < 5 min por push)
+- [X] T008 Crear punto de entrada de la aplicación `src/main.js` con `createApp(App)` + Pinia (`createPinia()`) + Vue Router montados sobre `#app`; crear `src/App.vue` con `<RouterView />`
 
 **Checkpoint**: `pnpm dev` levanta el servidor, `pnpm test` corre 0 tests sin errores, `pnpm lint` pasa en verde.
 
