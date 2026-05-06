@@ -1,6 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore.js'
 
+/**
+ * @description Defines all application routes with lazy-loading.
+ * Las 7 rutas del juego: menu, seleccion de mazo, mapa, combate, recompensa, game over, victoria.
+ * Todas las vistas se cargan bajo demanda para optimizar el bundle inicial (FR-047).
+ */
 const routes = [
   {
     path: '/',
@@ -44,7 +49,14 @@ const router = createRouter({
   routes,
 })
 
-// Guard: block /combat and /reward when game hasn't started yet
+/**
+ * @description Global navigation guard that blocks access to phase-sensitive routes
+ *              when the game has not started (currentPhase === 'menu').
+ *              Prevents the player from navigating directly to /combat or /reward
+ *              without going through the proper game flow (FR-001, FR-002).
+ * @param {import('vue-router').RouteLocationNormalized} to - Target route
+ * @returns {void | { name: string }} Redirect to 'menu' if access is blocked; undefined otherwise
+ */
 router.beforeEach((to) => {
   const blocked = ['combat', 'reward']
   if (blocked.includes(to.name)) {
@@ -54,7 +66,7 @@ router.beforeEach((to) => {
         return { name: 'menu' }
       }
     } catch {
-      // Pinia not yet initialized during SSR/tests — let it through
+      // Pinia not yet initialized during SSR/tests — allow navigation
     }
   }
 })
