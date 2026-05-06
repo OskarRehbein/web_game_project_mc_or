@@ -1,10 +1,12 @@
 <template>
   <RouterView />
+  <DevNav />
 </template>
 
 <script setup>
+import DevNav from '@/components/DevNav.vue'
 // Root component — renders the active route view.
-// All layout chrome (nav, global modals) lives here in later phases.
+// DevNav only visible in development (import.meta.env.DEV).
 </script>
 
 <style>

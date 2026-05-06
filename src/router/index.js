@@ -58,6 +58,9 @@ const router = createRouter({
  * @returns {void | { name: string }} Redirect to 'menu' if access is blocked; undefined otherwise
  */
 router.beforeEach((to) => {
+  // In dev mode, allow free navigation to any route for testing purposes.
+  if (import.meta.env.DEV) return
+
   const blocked = ['combat', 'reward']
   if (blocked.includes(to.name)) {
     try {
