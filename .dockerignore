@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# CI/CD & specs
+.github
+specs
+
+# Dev artifacts
+node_modules
+dist
+coverage
+
+# Ignore files
+.dockerignore
+.eslintignore
+.prettierignore
+
+# Config files not needed at runtime
+vite.config.js
+vitest.config.js
+eslint.config.js
+*.md
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
