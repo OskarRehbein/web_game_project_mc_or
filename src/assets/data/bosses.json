@@ -1,0 +1,202 @@
+[
+  {
+    "id": "crab_captain",
+    "name": "Capitán Cangrejo",
+    "isMajor": false,
+    "hp": 120,
+    "maxHp": 120,
+    "spriteKey": "boss_crab_captain",
+    "attackPatterns": [
+      {
+        "id": "claw_swipe",
+        "name": "Zarpazo de Pinza",
+        "telegraphDurationMs": 1200,
+        "damage": 15,
+        "zones": [
+          {
+            "x": 480,
+            "y": 300,
+            "width": 200,
+            "height": 80
+          }
+        ]
+      },
+      {
+        "id": "bubble_barrage",
+        "name": "Ráfaga de Burbujas",
+        "telegraphDurationMs": 1500,
+        "damage": 10,
+        "hpThreshold": 0.5,
+        "zones": [
+          {
+            "x": 100,
+            "y": 200,
+            "width": 80,
+            "height": 80
+          },
+          {
+            "x": 400,
+            "y": 350,
+            "width": 80,
+            "height": 80
+          },
+          {
+            "x": 700,
+            "y": 250,
+            "width": 80,
+            "height": 80
+          }
+        ]
+      },
+      {
+        "id": "shell_spin",
+        "name": "Giro de Concha",
+        "telegraphDurationMs": 2000,
+        "damage": 25,
+        "hpThreshold": 0.25,
+        "zones": [
+          {
+            "x": 200,
+            "y": 180,
+            "width": 560,
+            "height": 200
+          }
+        ]
+      }
+    ],
+    "lootPool": [
+      {
+        "id": "briny_fist",
+        "name": "Puño Salado",
+        "type": "action",
+        "rarity": "common",
+        "description": "Lanza un golpe empapado que hace 12 de daño.",
+        "effect": {
+          "damage": 12
+        },
+        "cooldown": 3,
+        "cost": 0
+      },
+      {
+        "id": "shell_shield",
+        "name": "Escudo de Concha",
+        "type": "passive",
+        "rarity": "common",
+        "description": "La concha te otorga +15 de vida máxima.",
+        "effect": {
+          "flatHp": 15
+        },
+        "cost": 0
+      }
+    ]
+  },
+  {
+    "id": "the_drowned_admiral",
+    "name": "El Almirante Ahogado",
+    "isMajor": true,
+    "hp": 280,
+    "maxHp": 280,
+    "spriteKey": "boss_drowned_admiral",
+    "uniqueCard": {
+      "id": "tidal_authority",
+      "name": "Autoridad Mareal",
+      "type": "passive",
+      "rarity": "unique",
+      "description": "El poder del almirante fluye en ti: +8 daño plano y ×1.3 multiplicador.",
+      "effect": {
+        "flatDamage": 8,
+        "damageMult": 1.3
+      },
+      "cost": 0
+    },
+    "attackPatterns": [
+      {
+        "id": "cannon_volley",
+        "name": "Andanada de Cañones",
+        "telegraphDurationMs": 1800,
+        "damage": 20,
+        "zones": [
+          {
+            "x": 0,
+            "y": 400,
+            "width": 960,
+            "height": 60
+          }
+        ]
+      },
+      {
+        "id": "whirlpool_summon",
+        "name": "Invocación de Remolino",
+        "telegraphDurationMs": 2500,
+        "damage": 30,
+        "zones": [
+          {
+            "x": 330,
+            "y": 150,
+            "width": 300,
+            "height": 300
+          }
+        ]
+      },
+      {
+        "id": "ghost_crew_rush",
+        "name": "Embestida de la Tripulación Fantasma",
+        "telegraphDurationMs": 1000,
+        "damage": 12,
+        "hpThreshold": 0.5,
+        "zones": [
+          {
+            "x": 0,
+            "y": 200,
+            "width": 200,
+            "height": 340
+          },
+          {
+            "x": 760,
+            "y": 200,
+            "width": 200,
+            "height": 340
+          }
+        ]
+      },
+      {
+        "id": "tidal_surge",
+        "name": "Marea de Tormenta",
+        "telegraphDurationMs": 3000,
+        "damage": 45,
+        "hpThreshold": 0.25,
+        "zones": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 960,
+            "height": 540
+          }
+        ]
+      }
+    ],
+    "lootPool": [
+      {
+        "id": "admirals_pistol",
+        "name": "Pistola del Almirante",
+        "type": "action",
+        "rarity": "rare",
+        "description": "Un disparo preciso que inflige 22 de daño.",
+        "effect": {
+          "damage": 22
+        },
+        "cooldown": 5,
+        "cost": 0
+      },
+      {
+        "id": "ghost_compass",
+        "name": "Brújula Espectral",
+        "type": "utility",
+        "rarity": "rare",
+        "description": "Revela la opción oculta en el siguiente evento de isla.",
+        "effect": {},
+        "cost": 0
+      }
+    ]
+  }
+]
