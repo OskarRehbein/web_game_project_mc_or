@@ -65,9 +65,10 @@ Archivo de referencia rápida. Describe qué hace cada bloque de tareas, su esta
 |-------|---------|----------|
 | T022 ✅ | `playerStore.test.js` | 17 tests unitarios escritos **antes** de implementar (TDD): reset, applyDamage, heal, spendGold, addGold, clearCombatDebuffs |
 | T014 ✅ | `playerStore.js` | Store reactivo del jugador: HP, oro, debuffs activos. Getter `stats(passiveCards)` calcula daño/velocidad/maxHp en tiempo real. Lanza error si se intenta gastar más oro del disponible |
-| T042 ✅ | `deckStore.test.js` | 15 tests: initWithArchetype para los 3 arquetipos, addCard, removeCard (solo una instancia), getters de filtrado por tipo |
+| T042 ✅ *(adelantada de Phase 5)* | `deckStore.test.js` | 15 tests: initWithArchetype para los 3 arquetipos, addCard, removeCard (solo una instancia), getters de filtrado por tipo. Originalmente planificada para Semana 3 (Phase 5), se hizo en Semana 2 con TDD del store |
 | T015 ✅ | `deckStore.js` | Store del mazo: filtra cartas por tipo (action/passive/utility), `initWithArchetype()`, `addCard()`, `removeCard()` (consume una copia de Utilidad), `hasCard()` |
     | T016 ✅ | `gameStore.js` | Store central de la partida: fase actual, isla/jefe en curso, islas completadas, rewards pendientes. Guards de progresión (boss gate, final gate) |
+| ✨ *bonus* | `gameStore.test.js` | 19 tests adicionales (no estaba en tasks.md): startNewRun, enterCombat, resolveCombatVictory, resolveGameOver, getters isBossGate/isFinalGate |
 
 #### Infraestructura Vue
 

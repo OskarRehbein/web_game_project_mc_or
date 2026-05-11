@@ -35,17 +35,17 @@
 
 ⚠️ **CRÍTICO**: Todo el código del motor (`/engine`) debe ser JavaScript puro sin imports de Vue ni PixiJS.
 
-- [ ] T009 [P] Implementar `Card` (clase/objeto con `id`, `name`, `type`, `rarity`, `effect`, `cooldown?`, `cost`) y función fábrica `createCard(id, data)` en `src/engine/entities/Card.js`
-- [ ] T010 [P] Implementar modelo `Debuff` (`{ type, magnitude, expireAfterCombat }`) con función `createDebuff(type, magnitude)` en `src/engine/entities/Debuff.js`
-- [ ] T011 Implementar constante `ARCHETYPES` con los 3 arquetipos iniciales (`action`, `balanced`, `exploration`) y sus `startingCards[]` en `src/engine/entities/DeckArchetype.js` (depende de T009)
-- [ ] T012 Implementar clase `Player` con constructor, `computeStats(passiveCards)` y fórmula `daño_final = (base + flat) × mult × debuffMult` en `src/engine/entities/Player.js` (depende de T010)
-- [ ] T013 Implementar clase `Boss` con `id`, `name`, `hp`, `maxHp`, `attackPatterns[]`, `lootPool[]`, `uniqueCard?`, `isMajor` en `src/engine/entities/Boss.js` (depende de T009)
-- [ ] T014 Implementar `playerStore` con state (`hp`, `maxHp`, `gold`, `activeDebuffs`, `_baseDamage`, `_baseSpeed`), getter `stats` (daño con bonos de Pasivas y débuffs) y actions (`applyDamage`, `heal`, `addGold`, `spendGold`, `addDebuff`, `clearCombatDebuffs`, `reset`) en `src/stores/playerStore.js`
-- [ ] T015 Implementar `deckStore` con state (`cards[]`), getters (`actionCards`, `passiveCards`, `utilityCards`, `hasCard`) y actions (`initWithArchetype`, `addCard`, `removeCard`, `reset`) en `src/stores/deckStore.js` (depende de T011)
-- [ ] T016 Implementar `gameStore` con state (`currentPhase`, `currentIsland`, `currentBoss`, `bossHp`, `bossMaxHp`, `regularIslandsCompleted`, `bossIslandsDefeated[]`, `pendingDebuffs[]`, `pendingRewards`, `chosenArchetype`), getters (`isBossGate`, `isFinalGate`) y actions (`startNewRun`, `enterCombat`, `resolveCombatVictory`, `resolveGameOver`) en `src/stores/gameStore.js` (depende de T014, T015)
-- [ ] T017 Configurar Vue Router con las 7 rutas (`/`, `/deck-select`, `/map`, `/combat`, `/reward`, `/gameover`, `/victory`), lazy-loading para todas las vistas y guard global que bloquea `/combat` y `/reward` cuando `currentPhase === 'menu'` en `src/router/index.js`
-- [ ] T018 [P] Crear componentes Vue compartidos reutilizables: `Button.vue` (variantes primary/secondary/disabled), `Modal.vue` (overlay con slot de contenido) y `ProbabilityBadge.vue` (muestra porcentaje de un outcome) en `src/components/shared/`
-- [ ] T019 [P] Crear `MainMenu.vue` (pantalla de título con botón "Nueva Partida" que navega a `/deck-select`) en `src/views/MainMenu.vue`
+- [X] T009 [P] Implementar `Card` (clase/objeto con `id`, `name`, `type`, `rarity`, `effect`, `cooldown?`, `cost`) y función fábrica `createCard(id, data)` en `src/engine/entities/Card.js`
+- [X] T010 [P] Implementar modelo `Debuff` (`{ type, magnitude, expireAfterCombat }`) con función `createDebuff(type, magnitude)` en `src/engine/entities/Debuff.js`
+- [X] T011 Implementar constante `ARCHETYPES` con los 3 arquetipos iniciales (`action`, `balanced`, `exploration`) y sus `startingCards[]` en `src/engine/entities/DeckArchetype.js` (depende de T009)
+- [X] T012 Implementar clase `Player` con constructor, `computeStats(passiveCards)` y fórmula `daño_final = (base + flat) × mult × debuffMult` en `src/engine/entities/Player.js` (depende de T010)
+- [X] T013 Implementar clase `Boss` con `id`, `name`, `hp`, `maxHp`, `attackPatterns[]`, `lootPool[]`, `uniqueCard?`, `isMajor` en `src/engine/entities/Boss.js` (depende de T009)
+- [X] T014 Implementar `playerStore` con state (`hp`, `maxHp`, `gold`, `activeDebuffs`, `_baseDamage`, `_baseSpeed`), getter `stats` (daño con bonos de Pasivas y débuffs) y actions (`applyDamage`, `heal`, `addGold`, `spendGold`, `addDebuff`, `clearCombatDebuffs`, `reset`) en `src/stores/playerStore.js`
+- [X] T015 Implementar `deckStore` con state (`cards[]`), getters (`actionCards`, `passiveCards`, `utilityCards`, `hasCard`) y actions (`initWithArchetype`, `addCard`, `removeCard`, `reset`) en `src/stores/deckStore.js` (depende de T011)
+- [X] T016 Implementar `gameStore` con state (`currentPhase`, `currentIsland`, `currentBoss`, `bossHp`, `bossMaxHp`, `regularIslandsCompleted`, `bossIslandsDefeated[]`, `pendingDebuffs[]`, `pendingRewards`, `chosenArchetype`), getters (`isBossGate`, `isFinalGate`) y actions (`startNewRun`, `enterCombat`, `resolveCombatVictory`, `resolveGameOver`) en `src/stores/gameStore.js` (depende de T014, T015)
+- [X] T017 Configurar Vue Router con las 7 rutas (`/`, `/deck-select`, `/map`, `/combat`, `/reward`, `/gameover`, `/victory`), lazy-loading para todas las vistas y guard global que bloquea `/combat` y `/reward` cuando `currentPhase === 'menu'` en `src/router/index.js`
+- [X] T018 [P] Crear componentes Vue compartidos reutilizables: `Button.vue` (variantes primary/secondary/disabled), `Modal.vue` (overlay con slot de contenido) y `ProbabilityBadge.vue` (muestra porcentaje de un outcome) en `src/components/shared/`
+- [X] T019 [P] Crear `MainMenu.vue` (pantalla de título con botón "Nueva Partida" que navega a `/deck-select`) en `src/views/MainMenu.vue`
 
 **Checkpoint**: Todos los stores son importables, el router navega entre rutas vacías sin errores, `pnpm test` pasa (aún sin tests de lógica).
 
@@ -61,21 +61,21 @@
 
 > ⚠️ Escribir primero, verificar que **FALLAN** antes de implementar
 
-- [ ] T020 [P] [US1] Escribir tests unitarios para `DamageCalculator` (sin pasivas → base 10, con `flatDamage` → suma, con `damageMult` → multiplica, con débuff → reduce, combinado) en `tests/unit/engine/DamageCalculator.test.js`
-- [ ] T021 [P] [US1] Escribir tests unitarios para `AttackPatternSelector` (sin `hpThreshold` → todos activos, patrón único, `pickPattern` sin elegibles → lanza error) en `tests/unit/engine/AttackPatternSelector.test.js`
-- [ ] T022 [P] [US1] Escribir tests unitarios para `playerStore` (`reset` limpia todo, `applyDamage` no baja de 0, `heal` no supera `maxHp`, `spendGold` insuficiente lanza error, `clearCombatDebuffs` expira solo los de combate) en `tests/unit/stores/playerStore.test.js`
+- [X] T020 [P] [US1] Escribir tests unitarios para `DamageCalculator` (sin pasivas → base 10, con `flatDamage` → suma, con `damageMult` → multiplica, con débuff → reduce, combinado) en `tests/unit/engine/DamageCalculator.test.js`
+- [X] T021 [P] [US1] Escribir tests unitarios para `AttackPatternSelector` (sin `hpThreshold` → todos activos, patrón único, `pickPattern` sin elegibles → lanza error) en `tests/unit/engine/AttackPatternSelector.test.js`
+- [X] T022 [P] [US1] Escribir tests unitarios para `playerStore` (`reset` limpia todo, `applyDamage` no baja de 0, `heal` no supera `maxHp`, `spendGold` insuficiente lanza error, `clearCombatDebuffs` expira solo los de combate) en `tests/unit/stores/playerStore.test.js`
 
 ### Implementación — User Story 1
 
-- [ ] T023 [P] [US1] Implementar `calculateDamage(base, passives, debuffs)` con fórmula `(base + flatBonus) × mult × debuffMult` y retorno redondeado en `src/engine/combat/DamageCalculator.js`
-- [ ] T024 [P] [US1] Implementar `getEligiblePatterns(patterns, bossHp, bossMaxHp)` (filtra por `hpThreshold` si existe) y `pickPattern(eligible, rng)` en `src/engine/combat/AttackPatternSelector.js`
-- [ ] T025 [P] [US1] Implementar `CollisionSystem` con detección AABB (`checkCollision(rectA, rectB)` retorna boolean) y `getCollisions(entities, zones)` en `src/engine/combat/CollisionSystem.js`
-- [ ] T026 [US1] Implementar `createCombatApp({ container, boss, onPlayerHit, onBossDefeated, onPlayerDefeated, onBossHpChanged })` con: inicialización de `PIXI.Application` (960×540), carga de assets, setup de escena (plataformas, sprites), game loop (`ticker.add`), sistema de telegraph (zona de peligro pre-ataque ≥1000 ms), y `destroy()` limpio en `src/engine/combat/CombatEngine.js` (depende de T023, T024, T025)
-- [ ] T027 [P] [US1] Crear datos de jefes iniciales con al menos 1 jefe menor (`isMajor: false`) y 1 jefe principal (`isMajor: true`, con `uniqueCard`), cada uno con ≥2 `attackPatterns` de `telegraphDurationMs ≥ 1000` en `src/assets/data/bosses.json`
-- [ ] T028 [P] [US1] Crear componentes HUD: `HealthBar.vue` (barra de vida jugador con porcentaje reactivo), `BossHealthBar.vue` (barra de vida del jefe visible en todo momento), `CooldownIndicator.vue` (indicador visual de cooldown restante por carta de Acción) en `src/components/hud/`
-- [ ] T029 [US1] Implementar `CombatView.vue`: montar canvas PixiJS en `<div ref="pixiContainer">` en `onMounted`, destruir en `onUnmounted`, overlay HUD Vue con `position: absolute` encima del canvas, snapshot de stats del jugador al iniciar combate en `src/views/CombatView.vue` (depende de T026, T028)
-- [ ] T030 [US1] Implementar `RewardScreen.vue` (muestra oro ganado y carta(s) obtenida, botón "Continuar" que llama `router.push({ name: 'map' })`) en `src/views/RewardScreen.vue`
-- [ ] T031 [US1] Implementar `GameOverView.vue` (pantalla de Game Over con botón "Reintentar" que llama `gameStore.startNewRun` y navega a `/deck-select`) en `src/views/GameOverView.vue`
+- [X] T023 [P] [US1] Implementar `calculateDamage(base, passives, debuffs)` con fórmula `(base + flatBonus) × mult × debuffMult` y retorno redondeado en `src/engine/combat/DamageCalculator.js`
+- [X] T024 [P] [US1] Implementar `getEligiblePatterns(patterns, bossHp, bossMaxHp)` (filtra por `hpThreshold` si existe) y `pickPattern(eligible, rng)` en `src/engine/combat/AttackPatternSelector.js`
+- [X] T025 [P] [US1] Implementar `CollisionSystem` con detección AABB (`checkCollision(rectA, rectB)` retorna boolean) y `getCollisions(entities, zones)` en `src/engine/combat/CollisionSystem.js`
+- [X] T026 [US1] Implementar `createCombatApp({ container, boss, onPlayerHit, onBossDefeated, onPlayerDefeated, onBossHpChanged })` con: inicialización de `PIXI.Application` (960×540), carga de assets, setup de escena (plataformas, sprites), game loop (`ticker.add`), sistema de telegraph (zona de peligro pre-ataque ≥1000 ms), y `destroy()` limpio en `src/engine/combat/CombatEngine.js` (depende de T023, T024, T025)
+- [X] T027 [P] [US1] Crear datos de jefes iniciales con al menos 1 jefe menor (`isMajor: false`) y 1 jefe principal (`isMajor: true`, con `uniqueCard`), cada uno con ≥2 `attackPatterns` de `telegraphDurationMs ≥ 1000` en `src/assets/data/bosses.json`
+- [X] T028 [P] [US1] Crear componentes HUD: `HealthBar.vue` (barra de vida jugador con porcentaje reactivo), `BossHealthBar.vue` (barra de vida del jefe visible en todo momento), `CooldownIndicator.vue` (indicador visual de cooldown restante por carta de Acción) en `src/components/hud/`
+- [X] T029 [US1] Implementar `CombatView.vue`: montar canvas PixiJS en `<div ref="pixiContainer">` en `onMounted`, destruir en `onUnmounted`, overlay HUD Vue con `position: absolute` encima del canvas, snapshot de stats del jugador al iniciar combate en `src/views/CombatView.vue` (depende de T026, T028)
+- [X] T030 [US1] Implementar `RewardScreen.vue` (muestra oro ganado y carta(s) obtenida, botón "Continuar" que llama `router.push({ name: 'map' })`) en `src/views/RewardScreen.vue`
+- [X] T031 [US1] Implementar `GameOverView.vue` (pantalla de Game Over con botón "Reintentar" que llama `gameStore.startNewRun` y navega a `/deck-select`) en `src/views/GameOverView.vue`
 
 **Checkpoint**: Navegando a `/combat` con un jefe ficticio se puede jugar una partida completa de combate con movimiento, cartas, telegraph, victoria y derrota. Los 3 tests pasan en verde.
 
@@ -115,7 +115,7 @@
 ### Tests — User Story 3
 
 - [ ] T041 [P] [US3] Escribir tests unitarios para `ShopSystem` (compra exitosa resta oro, oro insuficiente → `success: false`, `item.cost < 15` lanza error, catálogo generado no contiene ítems < 15 monedas; SC-009) en `tests/unit/engine/ShopSystem.test.js`
-- [ ] T042 [P] [US3] Escribir tests unitarios para `deckStore` (`initWithArchetype` produce las cartas correctas para los 3 arquetipos, `addCard` aumenta `cards.length`, `removeCard` elimina solo una instancia de utilidad) en `tests/unit/stores/deckStore.test.js`
+- [X] T042 [P] [US3] Escribir tests unitarios para `deckStore` (`initWithArchetype` produce las cartas correctas para los 3 arquetipos, `addCard` aumenta `cards.length`, `removeCard` elimina solo una instancia de utilidad) en `tests/unit/stores/deckStore.test.js` *(adelantado en Semana 2 con TDD del store)*
 
 ### Implementación — User Story 3
 

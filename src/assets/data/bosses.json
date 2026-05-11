@@ -26,7 +26,6 @@
         "name": "Ráfaga de Burbujas",
         "telegraphDurationMs": 1500,
         "damage": 10,
-        "hpThreshold": 0.5,
         "zones": [
           {
             "x": 100,
@@ -53,7 +52,6 @@
         "name": "Giro de Concha",
         "telegraphDurationMs": 2000,
         "damage": 25,
-        "hpThreshold": 0.25,
         "zones": [
           {
             "x": 200,
@@ -143,7 +141,6 @@
         "name": "Embestida de la Tripulación Fantasma",
         "telegraphDurationMs": 1000,
         "damage": 12,
-        "hpThreshold": 0.5,
         "zones": [
           {
             "x": 0,
@@ -164,7 +161,6 @@
         "name": "Marea de Tormenta",
         "telegraphDurationMs": 3000,
         "damage": 45,
-        "hpThreshold": 0.25,
         "zones": [
           {
             "x": 0,
