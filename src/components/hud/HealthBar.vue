@@ -1,11 +1,21 @@
 <template>
-  <div class="health-bar" :class="urgencyClass" role="progressbar" :aria-valuenow="hp" :aria-valuemax="maxHp" aria-label="Vida del jugador">
+  <div
+    class="health-bar"
+    :class="urgencyClass"
+    role="progressbar"
+    :aria-valuenow="hp"
+    :aria-valuemax="maxHp"
+    aria-label="Vida del jugador"
+  >
     <div class="health-bar__label">
       <span class="health-bar__icon">❤️</span>
       <span class="health-bar__text">{{ hp }} / {{ maxHp }}</span>
     </div>
     <div class="health-bar__track">
-      <div class="health-bar__fill" :style="{ width: fillPercent + '%' }" />
+      <div
+        class="health-bar__fill"
+        :style="{ width: fillPercent + '%' }"
+      />
     </div>
   </div>
 </template>

@@ -22,11 +22,33 @@ defineEmits(['close'])
 </script>
 
 <template>
-  <div class="modal-backdrop" @click.self="$emit('close')">
-    <div class="modal-box" role="dialog" aria-modal="true">
-      <div v-if="title || closable" class="modal-header">
-        <h2 v-if="title" class="modal-title">{{ title }}</h2>
-        <button v-if="closable" class="modal-close" aria-label="Cerrar" @click="$emit('close')">✕</button>
+  <div
+    class="modal-backdrop"
+    @click.self="$emit('close')"
+  >
+    <div
+      class="modal-box"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        v-if="title || closable"
+        class="modal-header"
+      >
+        <h2
+          v-if="title"
+          class="modal-title"
+        >
+          {{ title }}
+        </h2>
+        <button
+          v-if="closable"
+          class="modal-close"
+          aria-label="Cerrar"
+          @click="$emit('close')"
+        >
+          ✕
+        </button>
       </div>
       <div class="modal-content">
         <slot />

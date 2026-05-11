@@ -1,10 +1,19 @@
 <template>
   <div class="gameover-view">
-    <div class="gameover-view__skull">💀</div>
-    <h1 class="gameover-view__title">Game Over</h1>
-    <p class="gameover-view__subtitle">Las profundidades te han reclamado.</p>
+    <div class="gameover-view__skull">
+      💀
+    </div>
+    <h1 class="gameover-view__title">
+      Game Over
+    </h1>
+    <p class="gameover-view__subtitle">
+      Las profundidades te han reclamado.
+    </p>
 
-    <div class="gameover-view__stats" v-if="stats.islandsCompleted > 0 || stats.bossesDefeated > 0">
+    <div
+      v-if="stats.islandsCompleted > 0 || stats.bossesDefeated > 0"
+      class="gameover-view__stats"
+    >
       <div class="gameover-view__stat">
         <span class="gameover-view__stat-value">{{ stats.islandsCompleted }}</span>
         <span class="gameover-view__stat-label">Islas completadas</span>
@@ -20,8 +29,18 @@
     </div>
 
     <div class="gameover-view__actions">
-      <Button variant="primary" @click="onRetry">🔄 Reintentar</Button>
-      <Button variant="secondary" @click="onMenu">🏠 Menú principal</Button>
+      <Button
+        variant="primary"
+        @click="onRetry"
+      >
+        🔄 Reintentar
+      </Button>
+      <Button
+        variant="secondary"
+        @click="onMenu"
+      >
+        🏠 Menú principal
+      </Button>
     </div>
   </div>
 </template>

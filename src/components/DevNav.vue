@@ -1,5 +1,8 @@
 <template>
-  <nav v-if="isDev" class="dev-nav">
+  <nav
+    v-if="isDev"
+    class="dev-nav"
+  >
     <span class="dev-label">🛠 DEV</span>
     <RouterLink
       v-for="route in devRoutes"

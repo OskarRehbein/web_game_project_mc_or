@@ -1,12 +1,26 @@
 <template>
-  <div class="boss-hp-bar" role="progressbar" :aria-valuenow="hp" :aria-valuemax="maxHp" :aria-label="'Vida de ' + bossName">
+  <div
+    class="boss-hp-bar"
+    role="progressbar"
+    :aria-valuenow="hp"
+    :aria-valuemax="maxHp"
+    :aria-label="'Vida de ' + bossName"
+  >
     <div class="boss-hp-bar__header">
       <span class="boss-hp-bar__name">{{ bossName }}</span>
       <span class="boss-hp-bar__value">{{ hp }} / {{ maxHp }}</span>
     </div>
     <div class="boss-hp-bar__track">
-      <div class="boss-hp-bar__fill" :style="{ width: fillPercent + '%' }" />
-      <div class="boss-hp-bar__phase-marker" v-for="marker in phaseMarkers" :key="marker" :style="{ left: (100 - marker * 100) + '%' }" />
+      <div
+        class="boss-hp-bar__fill"
+        :style="{ width: fillPercent + '%' }"
+      />
+      <div
+        v-for="marker in phaseMarkers"
+        :key="marker"
+        class="boss-hp-bar__phase-marker"
+        :style="{ left: (100 - marker * 100) + '%' }"
+      />
     </div>
   </div>
 </template>

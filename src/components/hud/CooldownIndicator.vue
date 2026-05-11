@@ -1,12 +1,25 @@
 <template>
-  <div class="cooldown" :class="{ 'cooldown--ready': isReady, 'cooldown--active': !isReady }">
+  <div
+    class="cooldown"
+    :class="{ 'cooldown--ready': isReady, 'cooldown--active': !isReady }"
+  >
     <div class="cooldown__icon-wrap">
       <span class="cooldown__icon">⚡</span>
-      <svg class="cooldown__ring" viewBox="0 0 36 36">
-        <circle class="cooldown__ring-bg" cx="18" cy="18" r="15" />
+      <svg
+        class="cooldown__ring"
+        viewBox="0 0 36 36"
+      >
+        <circle
+          class="cooldown__ring-bg"
+          cx="18"
+          cy="18"
+          r="15"
+        />
         <circle
           class="cooldown__ring-fill"
-          cx="18" cy="18" r="15"
+          cx="18"
+          cy="18"
+          r="15"
           :stroke-dasharray="`${progressArc} 94.25`"
         />
       </svg>

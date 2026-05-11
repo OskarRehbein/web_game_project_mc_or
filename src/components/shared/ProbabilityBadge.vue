@@ -31,7 +31,10 @@ const ICONS = {
 </script>
 
 <template>
-  <span :class="['prob-badge', `prob-badge--${type}`]" :title="`${weight}% de probabilidad`">
+  <span
+    :class="['prob-badge', `prob-badge--${type}`]"
+    :title="`${weight}% de probabilidad`"
+  >
     {{ ICONS[type] }} {{ weight }}%
   </span>
 </template>

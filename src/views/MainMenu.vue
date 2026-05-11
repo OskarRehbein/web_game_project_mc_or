@@ -20,9 +20,18 @@ function handleNewGame() {
 
 <template>
   <main class="menu">
-    <h1 class="menu__title">⚓ Fathom's End</h1>
-    <p class="menu__subtitle">Un roguelike de piratas y abismos</p>
-    <Button variant="primary" @click="handleNewGame">Nueva Partida</Button>
+    <h1 class="menu__title">
+      ⚓ Fathom's End
+    </h1>
+    <p class="menu__subtitle">
+      Un roguelike de piratas y abismos
+    </p>
+    <Button
+      variant="primary"
+      @click="handleNewGame"
+    >
+      Nueva Partida
+    </Button>
   </main>
 </template>
 

@@ -1,17 +1,30 @@
 <template>
   <div class="reward-screen">
-    <h1 class="reward-screen__title">⚓ ¡Victoria!</h1>
+    <h1 class="reward-screen__title">
+      ⚓ ¡Victoria!
+    </h1>
 
-    <div class="reward-screen__loot" v-if="rewards">
+    <div
+      v-if="rewards"
+      class="reward-screen__loot"
+    >
       <!-- Gold reward -->
-      <div class="reward-screen__gold" v-if="rewards.gold">
+      <div
+        v-if="rewards.gold"
+        class="reward-screen__gold"
+      >
         <span class="reward-screen__gold-icon">🪙</span>
         <span class="reward-screen__gold-label">+ {{ rewards.gold }} monedas de oro</span>
       </div>
 
       <!-- Card reward(s) -->
-      <div class="reward-screen__cards" v-if="rewards.cards?.length">
-        <p class="reward-screen__subtitle">Carta{{ rewards.cards.length > 1 ? 's' : '' }} obtenida{{ rewards.cards.length > 1 ? 's' : '' }}:</p>
+      <div
+        v-if="rewards.cards?.length"
+        class="reward-screen__cards"
+      >
+        <p class="reward-screen__subtitle">
+          Carta{{ rewards.cards.length > 1 ? 's' : '' }} obtenida{{ rewards.cards.length > 1 ? 's' : '' }}:
+        </p>
         <div class="reward-screen__card-list">
           <div
             v-for="card in rewards.cards"
@@ -21,17 +34,25 @@
           >
             <span class="reward-screen__card-name">{{ card.name }}</span>
             <span class="reward-screen__card-type">{{ typeLabel(card.type) }}</span>
-            <p class="reward-screen__card-desc">{{ card.description }}</p>
+            <p class="reward-screen__card-desc">
+              {{ card.description }}
+            </p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="reward-screen__empty" v-else>
+    <div
+      v-else
+      class="reward-screen__empty"
+    >
       <p>No hay recompensas pendientes.</p>
     </div>
 
-    <Button class="reward-screen__continue" @click="onContinue">
+    <Button
+      class="reward-screen__continue"
+      @click="onContinue"
+    >
       Continuar →
     </Button>
   </div>

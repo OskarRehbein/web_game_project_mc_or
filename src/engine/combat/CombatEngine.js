@@ -14,7 +14,7 @@
  *   3. controller.destroy()    → cleans up PIXI resources on Vue unmount (FR-044)
  */
 
-import { Application, Graphics, Text, TextStyle, Ticker } from 'pixi.js'
+import { Application, Graphics } from 'pixi.js'
 import { getEligiblePatterns, pickPattern } from './AttackPatternSelector.js'
 import { getCollisions } from './CollisionSystem.js'
 import { calculateDamage } from './DamageCalculator.js'
@@ -82,7 +82,6 @@ export async function createCombatApp(options) {
     debuffs = [],
     onPlayerHit,
     onBossDefeated,
-    onPlayerDefeated,
     onBossHpChanged,
   } = options
 

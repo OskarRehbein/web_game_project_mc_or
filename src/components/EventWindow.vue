@@ -1,8 +1,13 @@
 <template>
   <div class="event-overlay">
     <!-- Ventana de evento -->
-    <div v-if="!showResult" class="event-window">
-      <h1 class="event-title">{{ title }}</h1>
+    <div
+      v-if="!showResult"
+      class="event-window"
+    >
+      <h1 class="event-title">
+        {{ title }}
+      </h1>
       <div class="event-body">
         {{ content }}
       </div>
@@ -21,13 +26,21 @@
     </div>
 
     <!-- Ventana de resultado -->
-    <div v-else class="event-window result-window">
-      <h1 class="event-title">{{ resultTitle }}</h1>
+    <div
+      v-else
+      class="event-window result-window"
+    >
+      <h1 class="event-title">
+        {{ resultTitle }}
+      </h1>
       <div class="event-body">
         {{ resultContent }}
       </div>
       <div class="result-actions">
-        <button class="option-button" @click="$emit('close-result')">
+        <button
+          class="option-button"
+          @click="$emit('close-result')"
+        >
           Cerrar
         </button>
       </div>
@@ -36,6 +49,8 @@
 </template>
 
 <script setup>
+defineEmits(['select-option', 'close-result'])
+
 defineProps({
   title: {
     type: String,

@@ -4,7 +4,7 @@
       <canvas
         ref="mapCanvas"
         class="map-canvas"
-      ></canvas>
+      />
     </div>
     <!-- Ventana de eventos -->
     <EventWindow
@@ -98,7 +98,7 @@ function initializeIslands() {
       interactionRadius: 80,
     }),
   ]
-  console.log('Islas inicializadas:', islands)
+  console.warn('Islas inicializadas:', islands)
 }
 
 /**
@@ -110,7 +110,7 @@ function initializeShip() {
     y: canvasHeight / 2,
     radius: 15,
   })
-  console.log('Barco inicializado:', ship)
+  console.warn('Barco inicializado:', ship)
 }
 
 /**
@@ -143,7 +143,7 @@ function handleKeyUp(event) {
  */
 function handleInteraction() {
   if (currentIslandInRange) {
-    console.log(`Interactuando con: ${currentIslandInRange.name}`)
+    console.warn(`Interactuando con: ${currentIslandInRange.name}`)
     showEventWindow.value = true
     eventData.value.title = currentIslandInRange.name
     eventData.value.content = `Has llegado a ${currentIslandInRange.name}. Algo sucede...`
@@ -154,7 +154,7 @@ function handleInteraction() {
  * Maneja la selección de una opción del evento
  */
 function handleSelectOption(optionIndex) {
-  console.log(`Opción seleccionada: ${optionIndex + 1}`)
+  console.warn(`Opción seleccionada: ${optionIndex + 1}`)
   showResultWindow.value = true
   resultData.value.title = 'Resultado'
   resultData.value.content = 'Placeholder'
@@ -329,7 +329,7 @@ function setupMap() {
   const width = container.clientWidth
   const height = container.clientHeight
 
-  console.log('Dimensiones del contenedor:', width, 'x', height)
+  console.warn('Dimensiones del contenedor:', width, 'x', height)
 
   if (width === 0 || height === 0) {
     console.warn('Dimensiones son 0, reintentando en nextTick')
@@ -342,7 +342,7 @@ function setupMap() {
   canvasWidth = width
   canvasHeight = height
 
-  console.log('Canvas configurado a:', canvas.width, 'x', canvas.height)
+  console.warn('Canvas configurado a:', canvas.width, 'x', canvas.height)
 
   initializeIslands()
   initializeShip()

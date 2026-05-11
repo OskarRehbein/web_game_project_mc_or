@@ -1,10 +1,16 @@
 <template>
   <div class="combat-view">
     <!-- PixiJS canvas mounts here -->
-    <div ref="pixiContainer" class="combat-view__canvas" />
+    <div
+      ref="pixiContainer"
+      class="combat-view__canvas"
+    />
 
     <!-- Vue HUD overlay — positioned absolute on top of the canvas (FR-044) -->
-    <div class="combat-view__hud" v-if="boss">
+    <div
+      v-if="boss"
+      class="combat-view__hud"
+    >
       <!-- Top: Boss HP bar -->
       <div class="combat-view__hud-top">
         <BossHealthBar
@@ -16,7 +22,10 @@
 
       <!-- Bottom: Player HP + action card cooldowns -->
       <div class="combat-view__hud-bottom">
-        <HealthBar :hp="playerHp" :max-hp="playerMaxHp" />
+        <HealthBar
+          :hp="playerHp"
+          :max-hp="playerMaxHp"
+        />
         <div class="combat-view__cooldowns">
           <CooldownIndicator
             v-for="card in actionCards"
@@ -29,7 +38,10 @@
       </div>
 
       <!-- Debuff indicators -->
-      <div class="combat-view__debuffs" v-if="playerDebuffs.length">
+      <div
+        v-if="playerDebuffs.length"
+        class="combat-view__debuffs"
+      >
         <span
           v-for="d in playerDebuffs"
           :key="d.type"
@@ -41,7 +53,10 @@
     </div>
 
     <!-- No boss loaded (dev mode shortcut) -->
-    <div v-else class="combat-view__no-boss">
+    <div
+      v-else
+      class="combat-view__no-boss"
+    >
       <p>⚠️ No hay jefe cargado en gameStore.currentBoss</p>
       <p>Usa el DevNav para ir a otro punto del juego primero.</p>
     </div>
