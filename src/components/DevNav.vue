@@ -24,7 +24,7 @@ const isDev = import.meta.env.DEV
 const devRoutes = [
   { to: '/',            icon: '🏠', label: 'Menú'        },
   { to: '/deck-select', icon: '🃏', label: 'Deck Select' },
-  { to: '/map',         icon: '🗺️', label: 'Mapa (Oskar)' },
+  { to: '/map',         icon: '🗺️', label: 'Mapa' },
   { to: '/combat',      icon: '⚔️', label: 'Combate'     },
   { to: '/reward',      icon: '💰', label: 'Recompensa'  },
   { to: '/gameover',    icon: '💀', label: 'Game Over'   },

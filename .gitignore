@@ -5,12 +5,40 @@ node_modules/
 dist/
 dist-ssr/
 *.log
+npm-debug.log*
 pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Archivos de entorno y editor
+# Cobertura de tests
+coverage/
+.nyc_output/
+
+# Archivos de entorno
 .env
 .env.*
+!.env.example
+
+# Sistema operativo
 .DS_Store
+Thumbs.db
+Desktop.ini
+
+# Caché de herramientas
+.eslintcache
+.prettierignore.cache
+*.tsbuildinfo
+
+# IDEs y editores
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+# PixiJS / assets temporales
+src/assets/sprites/*.tmp
+
+# Docker
+.dockerignore

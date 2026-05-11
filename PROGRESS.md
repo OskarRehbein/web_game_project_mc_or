@@ -46,7 +46,7 @@ Archivo de referencia rápida. Describe qué hace cada bloque de tareas, su esta
 
 ---
 
-### 🔄 Phase 2 — Foundational (Semana 2, en progreso)
+### ✅ Phase 2 — Foundational (Semana 2, completo)
 **Objetivo**: Todas las entidades puras, stores de Pinia y router. Ninguna historia de usuario puede comenzar sin esto.
 
 #### Entidades del motor (`src/engine/entities/`) — JS puro, sin Vue ni PixiJS
@@ -67,34 +67,34 @@ Archivo de referencia rápida. Describe qué hace cada bloque de tareas, su esta
 | T014 ✅ | `playerStore.js` | Store reactivo del jugador: HP, oro, debuffs activos. Getter `stats(passiveCards)` calcula daño/velocidad/maxHp en tiempo real. Lanza error si se intenta gastar más oro del disponible |
 | T042 ✅ | `deckStore.test.js` | 15 tests: initWithArchetype para los 3 arquetipos, addCard, removeCard (solo una instancia), getters de filtrado por tipo |
 | T015 ✅ | `deckStore.js` | Store del mazo: filtra cartas por tipo (action/passive/utility), `initWithArchetype()`, `addCard()`, `removeCard()` (consume una copia de Utilidad), `hasCard()` |
-| T016 | `gameStore.js` | Store central de la partida: fase actual, isla/jefe en curso, islas completadas, rewards pendientes. Guards de progresión (boss gate, final gate) |
+    | T016 ✅ | `gameStore.js` | Store central de la partida: fase actual, isla/jefe en curso, islas completadas, rewards pendientes. Guards de progresión (boss gate, final gate) |
 
 #### Infraestructura Vue
 
 | Tarea | Qué hace |
 |-------|----------|
-| T017 | Vue Router con 7 rutas (`/`, `/deck-select`, `/map`, `/combat`, `/reward`, `/gameover`, `/victory`), lazy-loading, guard que bloquea `/combat` fuera de combate |
-| T018 | Componentes compartidos: `Button.vue`, `Modal.vue`, `ProbabilityBadge.vue` |
-| T019 | `MainMenu.vue` — pantalla de título con botón "Nueva Partida" |
+| T017 ✅ | Vue Router con 7 rutas (`/`, `/deck-select`, `/map`, `/combat`, `/reward`, `/gameover`, `/victory`), lazy-loading, guard que bloquea `/combat` fuera de combate |
+| T018 ✅ | Componentes compartidos: `Button.vue`, `Modal.vue`, `ProbabilityBadge.vue` |
+| T019 ✅ | `MainMenu.vue` — pantalla de título con botón "Nueva Partida" |
 
 ---
 
-### ⏳ Phase 3 — User Story 1: Combate (Semana 2, pendiente)
+### ✅ Phase 3 — User Story 1: Combate (Semana 2, completo)
 **Objetivo**: Ventana de combate jugable con movimiento, cartas, telegraph y victoria/derrota.
 
-| Tarea | Qué hará |
+| Tarea | Qué hace |
 |-------|----------|
-| T020 | Tests para `DamageCalculator` (TDD primero) |
-| T021 | Tests para `AttackPatternSelector` (TDD primero) |
-| T023 | `DamageCalculator.js` — fórmula `(base + flat) × mult × debuffMult` |
-| T024 | `AttackPatternSelector.js` — filtra patrones por `hpThreshold` y elige uno aleatoriamente |
-| T025 | `CollisionSystem.js` — detección AABB entre hitboxes |
-| T026 | `CombatEngine.js` — game loop PixiJS a 60 FPS, telegraph visual ≥1s, sprites, plataformas |
-| T027 | `bosses.json` — datos de al menos 2 jefes (1 menor + 1 principal) |
-| T028 | HUD: `HealthBar.vue`, `BossHealthBar.vue`, `CooldownIndicator.vue` |
-| T029 | `CombatView.vue` — canvas PixiJS + overlay HUD Vue |
-| T030 | `RewardScreen.vue` — oro y cartas obtenidas, botón continuar |
-| T031 | `GameOverView.vue` — pantalla de derrota con botón reiniciar |
+| T020 ✅ | Tests para `DamageCalculator` (TDD primero) |
+| T021 ✅ | Tests para `AttackPatternSelector` (TDD primero) |
+| T023 ✅ | `DamageCalculator.js` — fórmula `(base + flat) × mult × debuffMult` |
+| T024 ✅ | `AttackPatternSelector.js` — filtra patrones por `hpThreshold` y elige uno aleatoriamente |
+| T025 ✅ | `CollisionSystem.js` — detección AABB entre hitboxes (+ tests) |
+| T026 ✅ | `CombatEngine.js` — game loop PixiJS a 60 FPS, telegraph visual ≥1s, sprites, plataformas |
+| T027 ✅ | `bosses.json` — datos de al menos 2 jefes (1 menor + 1 principal) |
+| T028 ✅ | HUD: `HealthBar.vue`, `BossHealthBar.vue`, `CooldownIndicator.vue` |
+| T029 ✅ | `CombatView.vue` — canvas PixiJS + overlay HUD Vue |
+| T030 ✅ | `RewardScreen.vue` — oro y cartas obtenidas, botón continuar |
+| T031 ✅ | `GameOverView.vue` — pantalla de derrota con botón reiniciar |
 
 ---
 
