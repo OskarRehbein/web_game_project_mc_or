@@ -74,9 +74,9 @@ El jugador completa el ciclo completo: islas regulares → isla de jefe × 3 →
 
 **Acceptance Scenarios**:
 
-1. **Given** el jugador completa 5 islas regulares, **When** elige la siguiente isla, **Then** las 3 opciones presentadas son todas islas de jefe (no regulares).
+1. **Given** el jugador completa 3 islas regulares, **When** elige la siguiente isla, **Then** las 3 opciones presentadas son todas islas de jefe (no regulares).
 2. **Given** el jugador derrota un jefe principal (isla de jefe), **When** se resuelven las recompensas, **Then** recibe exactamente una carta única exclusiva de ese jefe.
-3. **Given** el jugador ha derrotado las 3 islas de jefe, **When** intenta navegar, **Then** la única opción disponible es la isla final "Fathom's End".
+3. **Given** el jugador ha derrotado la isla de jefe, **When** intenta navegar, **Then** la única opción disponible es la isla final "Fathom's End".
 4. **Given** el jugador derrota al jefe final, **When** se termina el combate, **Then** se muestra la pantalla de victoria con resumen de la partida.
 
 ---
@@ -159,9 +159,9 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 #### Generación del Mapa
 
 - **FR-030**: El mapa DEBE generarse proceduralmente al inicio de cada partida desde un banco de islas prediseñadas.
-- **FR-031**: Después de cada 5 islas regulares completadas, el sistema DEBE presentar 3 islas de jefe como opciones (descartando las no elegidas).
+- **FR-031**: Después de completar **3 islas regulares**, el sistema DEBE presentar 3 islas de jefe como opciones (el jugador elige 1; las otras 2 se descartan y no reaparecen).
 - **FR-032**: Las islas de jefe descartadas NO DEBEN reaparecer en la misma partida.
-- **FR-033**: Tras derrotar las 3 islas de jefe de la partida, el sistema DEBE generar la isla final "Fathom's End" como única opción disponible.
+- **FR-033**: Tras derrotar la isla de jefe de la partida (única), el sistema DEBE generar la isla final "Fathom's End" como única opción disponible.
 - **FR-034**: Los eventos de mar DEBEN dispararse con una probabilidad que escala progresivamente a lo largo de la partida: comenzando en aproximadamente **10%** por travesía en las primeras islas, y aumentando gradualmente hasta **40–50%** cerca de la isla final. La progresión es continua (no escalonada en bloques fijos) y se calcula en función del número de islas completadas sobre el total estimado de la partida.
 - **FR-035**: Los eventos de mar DEBEN seguir el mismo sistema de decisiones con probabilidades visibles que los eventos de isla.
 - **FR-036**: Los debuffs aplicados por eventos de mar DEBEN indicarse claramente en el HUD antes del siguiente combate y expirar al terminar dicho combate.
@@ -170,7 +170,7 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 
 - **FR-037**: El jugador DEBE acumular oro de forma persistente durante toda la partida (no se resetea entre islas).
 - **FR-038**: Los eventos de tienda DEBEN aparecer como islas regulares y antes de islas de jefe, ofreciendo un catálogo de cartas comprables con oro.
-- **FR-039**: Los jefes menores (encontrados en islas regulares) DEBEN otorgar loot aleatorio del pool de cartas de combate al ser derrotados.
+- **FR-039**: Los jefes menores (encontrados en islas regulares) DEBEN presentar 2 cartas aleatorias del pool de cartas al ser derrotados; el jugador elige 1 (o ninguna).
 - **FR-040**: Los jefes principales (de islas de jefe) DEBEN otorgar exactamente una carta única que representa el poder del jefe derrotado.
 - **FR-041**: El jefe final DEBE otorgar la carta de mayor rareza del juego al ser derrotado (mostrada en pantalla de victoria).
 - **FR-048**: El jugador DEBE comenzar cada partida con **0 monedas de oro**; el primer combate de isla regular otorga entre 8 y 20 monedas.
@@ -184,6 +184,8 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
   - Carta rara: 40–70 monedas.
   - Arma o Armadura: 30–80 monedas.
 - **FR-052**: El ítem más barato de la tienda DEBE costar al menos **15 monedas**, garantizando que el jugador complete 2 o más combates/eventos antes de poder realizar cualquier compra (tensión económica intencional).
+- **FR-053**: El pool total de cartas del juego comprende exactamente **9 cartas únicas**: 3 de Acción, 3 Pasivas y 3 de Utilidad. Todas deben estar explícitamente especificadas en `cards.json`.
+- **FR-054**: El jugador NO recupera HP automáticamente al terminar un combate. La curación solo ocurre a través de: (a) resultados de eventos de isla/mar que otorguen curación, o (b) ítems de curación comprados en la tienda. Las cartas de recuperación de vida (tipo Pasiva, Acción o Utilidad) son una opción válida dentro del pool de 9 cartas.
 
 #### Sistema Técnico
 
@@ -204,7 +206,7 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 - **Event**: Evento narrativo de una isla o del mar. Atributos: `id`, `title`, `description`, `decisions: Decision[]`, `isSeaEvent: boolean`.
 - **Decision**: Opción dentro de un evento. Atributos: `text`, `requirements: CardRequirement[]`, `outcomes: Outcome[]`.
 - **Outcome**: Resultado ponderado de una decisión. Atributos: `weight: number` (suma de todos los pesos en una decisión = 100), `type: 'loot' | 'trap' | 'boss' | 'damage' | 'debuff' | 'subevent'`, `goldMin?`, `goldMax?`, `cardPool?`, `subOutcomes?: Outcome[]`, `bossId?`, `damage?`, `debuff?`.
-- **Boss**: Entidad enemiga de combate. Atributos: `id`, `name`, `hp`, `maxHp`, `attackPatterns: AttackPattern[]`, `lootPool: Card[]`, `uniqueCard?: Card`, `isMajor: boolean`. En esta versión inicial no existe phase-gating: todos los `AttackPattern[]` del jefe están activos desde el inicio del combate, independientemente del HP actual. La arquitectura (campo `hpThreshold?` en `AttackPattern`) está diseñada para soportar fases de jefe en iteraciones futuras sin modificar esta estructura.
+- **Boss**: Entidad enemiga de combate. Atributos: `id`, `name`, `hp`, `maxHp`, `attackPatterns: AttackPattern[]`, `lootPool: Card[]`, `uniqueCard?: Card`, `isMajor: boolean`. Valores de HP por categoría: jefe menor (isla regular) `maxHp = 150`, jefe principal (isla de jefe) `maxHp = 400`, jefe final `maxHp = 800`. En esta versión inicial no existe phase-gating: todos los `AttackPattern[]` del jefe están activos desde el inicio del combate, independientemente del HP actual. La arquitectura (campo `hpThreshold?` en `AttackPattern`) está diseñada para soportar fases de jefe en iteraciones futuras sin modificar esta estructura.
 - **AttackPattern**: Secuencia de ataque de un jefe. Atributos: `id`, `telegraphDurationMs: number` (≥ 1000), `damageZones: Zone[]`, `damage: number`, `hpThreshold?: number` (0–100, porcentaje de HP del jefe por debajo del cual el patrón se vuelve elegible; **reservado para uso futuro**; si ausente o `undefined`, el patrón está siempre activo). En esta fase inicial, ningún patrón usa `hpThreshold`; el motor los trata todos como activos.
 - **DeckArchetype**: Plantilla de mazo inicial seleccionable por el jugador al comenzar una partida. Atributos: `id: 'action' | 'balanced' | 'exploration'`, `name: string`, `description: string`, `startingCards: Card[]`. Los tres arquetipos disponibles son: `action` (3 Acción), `balanced` (1 Acción + 1 Pasiva + 1 Utilidad), `exploration` (1 Acción + 1 Pasiva + 2 Utilidad).
 - **GameRun**: Estado completo de una partida en curso. Atributos: `player: Player`, `currentPhase: 'exploration' | 'combat'`, `chosenArchetype: DeckArchetype`, `regularIslandsCompleted: number`, `bossIslandsDefeated: Island[]`, `currentIsland?: Island`, `pendingDebuffs: Debuff[]`, `isCompleted: boolean`, `isVictory: boolean`.
@@ -233,7 +235,7 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 - El juego es **single-player exclusivamente**; no se contempla multijugador en ninguna fase del proyecto.
 - La plataforma objetivo es **navegador web de escritorio moderno** (Chrome 90+, Firefox 88+, Safari 14+); el soporte móvil está fuera del alcance de esta especificación.
 - El modelo de progresión es **roguelike por partida**: no hay persistencia entre partidas; al morir o ganar, el estado se resetea completamente.
-- El banco de islas prediseñadas debe contener un mínimo viable para generar variedad (se asume al menos 15 islas regulares, 6 islas de jefe, 1 isla final).
+- El banco de islas prediseñadas debe contener un mínimo viable para esta versión inicial: al menos **6 islas regulares** (para que las 3 presentadas al jugador sean aleatorias), **3 islas de jefe** (se presentan las 3, el jugador elige 1), **1 isla final**. El pool de cartas está fijado en exactamente 9 cartas únicas (3 Acción + 3 Pasiva + 3 Utilidad), todas especificadas explícitamente para esta entrega. La estructura de partida es: 3 regulares → 1 jefe → final.
 - El **audio y efectos de sonido** están fuera del alcance de esta especificación core; se pueden agregar en una iteración posterior sin cambiar la arquitectura.
 - Las **animaciones de personaje y jefes** (spritesheet) son responsabilidad del pipeline de assets; el motor asume que los assets existen en `/src/assets` en el formato correcto para PixiJS.
 - El jugador **elige** al inicio de cada partida entre tres arquetipos de mazo fijos ("Acción", "Equilibrado", "Exploración"). La composición de cada arquetipo es fija y predefinida en el sistema; no hay personalización libre de cartas en el arranque.
@@ -254,3 +256,11 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 - Q: ¿Los jefes tienen fases de combate diferenciadas (cambios de comportamiento según % de HP)? → A: Sin fases de jefe en esta fase inicial (Opción A). El modelo `Boss` usa `AttackPattern[]` sin phase-gating activo; cada `AttackPattern` incluye el campo opcional `hpThreshold?: number` reservado para uso futuro, permitiendo dividir patrones por umbral de HP en iteraciones posteriores sin romper la estructura existente.
 - Q: ¿El jugador puede elegir su mazo inicial o siempre arranca con el mismo conjunto de cartas? → A: El jugador elige entre 3 arquetipos fijos al inicio de cada partida: "Acción" (3 Acción), "Equilibrado" (1 Acción + 1 Pasiva + 1 Utilidad), "Exploración" (1 Acción + 1 Pasiva + 2 Utilidad). La composición de cada arquetipo es fija; no hay libre personalización en el arranque.
 - Q: ¿Cuál es la economía base de la tienda y el ritmo de loot esperado? → A: Oro inicial 0. Primer combate ~8 monedas. La tienda obliga a completar 2+ combates/eventos antes de la primera compra (mínimo 15 monedas). Categorías: Armas, Armaduras, Cartas. Rangos de loot: eventos regulares 5–15, combates menores 8–20, jefes principales 30–60. Precios tienda: Carta común 15–25, Carta rara 40–70, Arma/Armadura 30–80.
+
+### Session 2026-05-12
+
+- Q: ¿Cuántas cartas únicas existirán en el pool total del juego? → A: 9 cartas únicas: exactamente 3 de Acción + 3 Pasivas + 3 Utilidad. Todas las cartas del juego están especificadas explícitamente para esta entrega.
+- Q: ¿Cuánta vida (HP) tienen los jefes por categoría? → A: Jefe menor (isla regular): 150 HP. Jefe principal (isla de jefe): 400 HP. Jefe final (Fathom's End): 800 HP. La escala 1×/2.6×/5.3× garantiza peleas cortas para menores, desafiantes para principales y claramente épicas para el final.
+- Q: ¿Cómo recupera HP el jugador fuera del combate? → A: No hay recuperación automática de HP. La única curación proviene de eventos de isla/mar o ítems de tienda. Se permite diseñar cartas de recuperación de vida (Pasiva, Acción o Utilidad) dentro del pool de 9 cartas definido.
+- Q: ¿Cuántas cartas se ofrecen como recompensa al derrotar un jefe menor? → A: El jugador elige 1 de 2 cartas aleatorias del loot pool del jefe. Con solo 9 cartas en el pool total y una partida corta, 2 opciones son suficientes para generar decisión sin inflar el mazo ni agotar el pool rápidamente.
+- Q: ¿Cuál es la estructura completa del mapa para esta versión inicial? → A: 3 islas regulares → 1 isla de jefe (elegida de 3 opciones, las otras 2 se descartan) → isla final Fathom's End. Duración estimada: 20–30 min. Estructura diseñada para ser la base expandible; aumentar el número de islas en versiones futuras no requiere cambios arquitecturales.
