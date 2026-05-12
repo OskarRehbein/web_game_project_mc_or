@@ -410,9 +410,9 @@ export const useGameStore = defineStore('game', {
 
   getters: {
     isBossGate:  (state) => state.regularIslandsCompleted > 0
-                            && state.regularIslandsCompleted % 5 === 0
-                            && state.bossIslandsDefeated.length < 3,
-    isFinalGate: (state) => state.bossIslandsDefeated.length >= 3,
+                            && state.regularIslandsCompleted % 3 === 0
+                            && state.bossIslandsDefeated.length < 1,
+    isFinalGate: (state) => state.bossIslandsDefeated.length >= 1,
   },
 
   actions: {
