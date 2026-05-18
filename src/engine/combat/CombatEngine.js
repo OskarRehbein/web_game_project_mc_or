@@ -164,12 +164,13 @@ export async function createCombatApp(options) {
   // ─── Contenedores gráficos ─────────────────────────────────────────────────
   const bgGfx = new Graphics()
   const floorGfx = new Graphics()
+  const rangeGfx = new Graphics()     // anillo de rango melee (bajo el jefe)
   const telegraphGfx = new Graphics()
   const bossGfx = new Graphics()
   const playerGfx = new Graphics()
   const swingGfx = new Graphics()
 
-  app.stage.addChild(bgGfx, floorGfx, telegraphGfx, bossGfx, playerGfx, swingGfx)
+  app.stage.addChild(bgGfx, floorGfx, rangeGfx, telegraphGfx, bossGfx, playerGfx, swingGfx)
 
   // ─── Fondo con gradiente vertical y viñeta ─────────────────────────────────
   // Pixi v8 no tiene gradiente nativo: simulamos con bandas horizontales.
@@ -407,9 +408,11 @@ export async function createCombatApp(options) {
   // ─── Dibujo de la animación de swing del ataque básico (melee) ────────────
   function drawSwing() {
     swingGfx.clear()
+    rangeGfx.clear()
 
     // Anillo de alcance melee (siempre visible mientras el jefe esté vivo)
     // para que el jugador sepa cuándo está en rango para golpear.
+    // Se dibuja en rangeGfx (capa bajo el jefe) para que no le pase por encima.
     if (state.bossHp > 0) {
       const pcx = state.playerX + PLAYER_W / 2
       const pcy = state.playerY + PLAYER_H / 2
@@ -419,7 +422,7 @@ export async function createCombatApp(options) {
       const inRange = distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2
       const ringColor = inRange ? 0xffd166 : 0x4a6680
       const ringAlpha = inRange ? 0.55 : 0.18
-      swingGfx
+      rangeGfx
         .circle(pcx, pcy, BASIC_ATTACK_MELEE_RANGE)
         .stroke({ color: ringColor, width: inRange ? 2 : 1, alpha: ringAlpha })
     }
