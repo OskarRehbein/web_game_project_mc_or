@@ -1,0 +1,86 @@
+[
+  {
+    "id": "cannon_volley",
+    "name": "Cannon Volley",
+    "type": "action",
+    "description": "Unleash a barrage from your cannons, dealing 20 damage.",
+    "rarity": "common",
+    "effect": { "damage": 20 },
+    "cost": 20,
+    "cooldown": 3
+  },
+  {
+    "id": "storm_strike",
+    "name": "Storm Strike",
+    "type": "action",
+    "description": "Channel the fury of a storm into a single devastating blow, dealing 35 damage.",
+    "rarity": "rare",
+    "effect": { "damage": 35 },
+    "cost": 50,
+    "cooldown": 5
+  },
+  {
+    "id": "healing_tide",
+    "name": "Healing Tide",
+    "type": "action",
+    "description": "A wave of restorative energy repairs your hull for 20 HP.",
+    "rarity": "common",
+    "effect": { "heal": 20 },
+    "cost": 25,
+    "cooldown": 4
+  },
+  {
+    "id": "hull_reinforcement",
+    "name": "Hull Reinforcement",
+    "type": "passive",
+    "description": "Reinforced plating permanently increases your max HP by 30.",
+    "rarity": "common",
+    "effect": { "flatHp": 30 },
+    "cost": 20
+  },
+  {
+    "id": "sharp_keel",
+    "name": "Sharp Keel",
+    "type": "passive",
+    "description": "A serrated hull edge adds +8 flat damage to all attacks.",
+    "rarity": "rare",
+    "effect": { "flatDamage": 8 },
+    "cost": 45
+  },
+  {
+    "id": "battle_rhythm",
+    "name": "Battle Rhythm",
+    "type": "passive",
+    "description": "Your crew finds their rhythm in combat, amplifying all damage by 20%.",
+    "rarity": "rare",
+    "effect": { "damageMult": 1.2 },
+    "cost": 60
+  },
+  {
+    "id": "treasure_map",
+    "name": "Treasure Map",
+    "type": "utility",
+    "description": "Reveals a hidden cache on any island, guaranteeing a gold reward.",
+    "rarity": "common",
+    "effect": {},
+    "cost": 15
+  },
+  {
+    "id": "decoy_flag",
+    "name": "Decoy Flag",
+    "type": "utility",
+    "description": "Fly false colors to slip past a dangerous checkpoint undetected.",
+    "rarity": "common",
+    "effect": {},
+    "cost": 15
+  },
+  {
+    "id": "spyglass",
+    "name": "Spyglass",
+    "type": "utility",
+    "description": "Survey an island from afar, guaranteeing the best outcome of any decision.",
+    "rarity": "rare",
+    "effect": {},
+    "cost": 40
+  }
+]
