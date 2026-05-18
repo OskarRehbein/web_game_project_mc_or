@@ -114,16 +114,16 @@
 
 ### Tests — User Story 3
 
-- [ ] T041 [P] [US3] Escribir tests unitarios para `ShopSystem` (compra exitosa resta oro, oro insuficiente → `success: false`, `item.cost < 15` lanza error, catálogo generado no contiene ítems < 15 monedas; SC-009) en `tests/unit/engine/ShopSystem.test.js`
+- [X] T041 [P] [US3] Escribir tests unitarios para `ShopSystem` (compra exitosa resta oro, oro insuficiente → `success: false`, `item.cost < 15` lanza error, catálogo generado no contiene ítems < 15 monedas; SC-009) en `tests/unit/engine/ShopSystem.test.js`
 - [X] T042 [P] [US3] Escribir tests unitarios para `deckStore` (`initWithArchetype` produce las cartas correctas para los 3 arquetipos, `addCard` aumenta `cards.length`, `removeCard` elimina solo una instancia de utilidad) en `tests/unit/stores/deckStore.test.js` *(adelantado en Semana 2 con TDD del store)*
 
 ### Implementación — User Story 3
 
-- [ ] T043 [P] [US3] Implementar `ShopSystem` con `attemptPurchase(playerGold, item)` (valida `item.cost >= 15` e invariante de fondos) y `generateShopCatalog(cardPool, catalogSize, rng)` (garantiza precio ≥15 para todos los ítems) en `src/engine/simulation/ShopSystem.js`
-- [ ] T044 [P] [US3] Crear pool completo de cartas JSON con exactamente **9 cartas únicas** (3 `action`, 3 `passive`, 3 `utility`); rangos de `cost` correctos (común 15–25, rara 40–70); efectos `effect: { flatDamage?, damageMult?, flatHp?, healAmount? }` para pasivas/activas de curación en `src/assets/data/cards.json`
-- [ ] T045 [P] [US3] Crear componentes de cartas: `CardThumbnail.vue` (miniatura con nombre, tipo, iconografía de rareza), `DeckViewer.vue` (vista del mazo completo agrupado por tipo, usable fuera del combate), `CardShopItem.vue` (ítem de tienda con costo en oro y botón de compra reactivo al oro disponible) en `src/components/cards/`
-- [ ] T046 [US3] Implementar `DeckSelectionView.vue` con los 3 arquetipos renderizados como `ArchetypeCard` components, selección reactiva, y botón "Comenzar Aventura" que llama `gameStore.startNewRun(archetypeId)` y navega a `/map` en `src/views/DeckSelectionView.vue` (depende de T011, T045)
-- [ ] T047 [US3] Actualizar `RewardScreen.vue` para ofrecer selección de cartas del `lootPool` del jefe derrotado (mostrar **2 cartas aleatorias**, el jugador elige 1, se llama `deckStore.addCard`) en `src/views/RewardScreen.vue` (depende de T030, T043)
+- [X] T043 [P] [US3] Implementar `ShopSystem` con `attemptPurchase(playerGold, item)` (valida `item.cost >= 15` e invariante de fondos) y `generateShopCatalog(cardPool, catalogSize, rng)` (garantiza precio ≥15 para todos los ítems) en `src/engine/simulation/ShopSystem.js`
+- [X] T044 [P] [US3] Crear pool completo de cartas JSON con exactamente **9 cartas únicas** (3 `action`, 3 `passive`, 3 `utility`); rangos de `cost` correctos (común 15–25, rara 40–70); efectos `effect: { flatDamage?, damageMult?, flatHp?, healAmount? }` para pasivas/activas de curación en `src/assets/data/cards.json`
+- [X] T045 [P] [US3] Crear componentes de cartas: `CardThumbnail.vue` (miniatura con nombre, tipo, iconografía de rareza), `DeckViewer.vue` (vista del mazo completo agrupado por tipo, usable fuera del combate), `CardShopItem.vue` (ítem de tienda con costo en oro y botón de compra reactivo al oro disponible) en `src/components/cards/`
+- [X] T046 [US3] Implementar `DeckSelectionView.vue` con los 3 arquetipos renderizados como `ArchetypeCard` components, selección reactiva, y botón "Comenzar Aventura" que llama `gameStore.startNewRun(archetypeId)` y navega a `/map` en `src/views/DeckSelectionView.vue` (depende de T011, T045)
+- [X] T047 [US3] Actualizar `RewardScreen.vue` para ofrecer selección de cartas del `lootPool` del jefe derrotado (mostrar **2 cartas aleatorias**, el jugador elige 1, se llama `deckStore.addCard`) en `src/views/RewardScreen.vue` (depende de T030, T043)
 - [ ] T048 [US3] Añadir manejo de eventos de tienda en `EventModal.vue`: cuando `event.type === 'shop'`, renderizar catálogo generado por `ShopSystem.generateShopCatalog` con `CardShopItem.vue`, manejar compra con `playerStore.spendGold` y `deckStore.addCard` en `src/components/events/EventModal.vue` (depende de T043, T045)
 
 **Checkpoint**: El flujo completo `DeckSelectionView → MapView → (evento tienda) → compra de carta` funciona. Las stats del jugador cambian al adquirir cartas Pasivas. Los 2 tests pasan en verde.

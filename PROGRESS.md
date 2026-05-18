@@ -116,18 +116,19 @@ Archivo de referencia rápida. Describe qué hace cada bloque de tareas, su esta
 
 ---
 
-### ⏳ Phase 5 — User Story 3: Mazo de Cartas (Semana 3)
+### ✅ Phase 5 — User Story 3: Mazo de Cartas (Semana 4 — deuda técnica de Semana 3, Matías)
 **Objetivo**: El jugador acumula cartas por combates, eventos y tienda. Las Pasivas modifican stats activamente.
 
-| Tarea | Qué hará |
+| Tarea | Qué hace |
 |-------|----------|
-| T041 | Tests para `ShopSystem` |
-| T043 | `ShopSystem.js` — valida compras (mínimo 15 monedas) y genera catálogo aleatorio |
-| T044 | `cards.json` — ≥20 cartas (action, passive, utility, weapon, armor) |
-| T045 | Componentes de cartas: `CardThumbnail.vue`, `DeckViewer.vue`, `CardShopItem.vue` |
-| T046 | `DeckSelectionView.vue` — pantalla de elección de arquetipo al iniciar |
-| T047 | `RewardScreen.vue` actualizado — selección de carta del loot del jefe |
-| T048 | `EventModal.vue` actualizado — soporte de eventos de tienda |
+| T041 ✅ | Tests para `ShopSystem` (9 tests: compra exitosa, oro insuficiente, item.cost<15 lanza error, catálogo sin ítems < 15 gold, sin duplicados, tamaño máximo, pool pequeño) |
+| T042 ✅ *(adelantada en Semana 2)* | Tests para `deckStore` — ya completada previamente |
+| T043 ✅ | `ShopSystem.js` — `attemptPurchase(playerGold, item)` valida precio mínimo 15 gold (lanza Error si viola) e invariante de fondos; `generateShopCatalog(cardPool, catalogSize, rng)` filtra ítems < 15 y devuelve selección sin duplicados |
+| T044 ✅ | `cards.json` — 9 cartas únicas: 3 action (`cannon_volley`, `storm_strike`, `healing_tide`), 3 passive (`hull_reinforcement`, `sharp_keel`, `battle_rhythm`), 3 utility (`treasure_map`, `decoy_flag`, `spyglass`); costos: comunes 15–25, raras 40–60 |
+| T045 ✅ | `CardThumbnail.vue` (miniatura con tipo, rareza y cooldown), `DeckViewer.vue` (mazo agrupado por tipo, usa deckStore reactivo), `CardShopItem.vue` (ítem de tienda con costo y botón reactivo al oro del jugador) en `src/components/cards/` |
+| T046 ✅ | `DeckSelectionView.vue` — 3 arquetipos como tarjetas interactivas con cartas de inicio visibles; botón "Comenzar Aventura" llama `gameStore.startNewRun` + `deckStore.initWithArchetype` y navega a `/map` |
+| T047 ✅ | `RewardScreen.vue` actualizado — muestra 2 cartas aleatorias del `lootPool` del jefe como selección pick-one; botón "Continuar" habilitado solo tras elegir carta; llama `deckStore.addCard(pickedCard)` |
+| T048 ⏭️ | `EventModal.vue` con soporte de tienda — **omitido**: depende de T038 (EventModal.vue de Oskar, Phase 4 aún pendiente). Se implementará cuando Oskar integre su parte. |
 
 ---
 
