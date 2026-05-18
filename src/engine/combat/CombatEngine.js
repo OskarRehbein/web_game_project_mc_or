@@ -69,6 +69,15 @@ const BASIC_ATTACK_COOLDOWN_MS = 400
 const BASIC_SWING_DURATION_MS = 180
 
 /**
+ * Alcance del ataque básico melee en píxeles, medido desde el centro del
+ * jugador al centro del jefe. Si el jugador está más lejos, el swing se
+ * reproduce visualmente pero no inflige daño (sensación de "golpe al aire").
+ * Una futura carta de tipo `weapon` podrá ampliarlo (DESIGN.md: arma cuerpo
+ * a cuerpo vs distancia).
+ */
+const BASIC_ATTACK_MELEE_RANGE = 110
+
+/**
  * @typedef {Object} CombatOptions
  * @property {HTMLElement}              container        - Elemento DOM al que se adjunta el canvas
  * @property {Object}                   boss             - Datos del jefe desde bosses.json
@@ -149,6 +158,7 @@ export async function createCombatApp(options) {
     elapsed: 0,              // tiempo total para animaciones de idle
     shieldUntil: 0,          // state.elapsed hasta el que el jugador es invulnerable
     shieldFlash: 0,          // ms restantes del flash visual al bloquear un golpe
+    swingHit: false,         // último swing impactó al jefe? (melee dentro de rango)
   }
 
   // ─── Contenedores gráficos ─────────────────────────────────────────────────
@@ -212,21 +222,42 @@ export async function createCombatApp(options) {
   app.canvas.addEventListener('mousemove', onMouseMove)
   app.canvas.addEventListener('mousedown', onMouseDown)
 
-  // ─── Ataque básico ─────────────────────────────────────────────────────────
+  // ─── Ataque básico (melee) ───────────────────────────────────────────────
   /**
-   * @description Ejecuta el ataque básico del jugador si el cooldown lo permite (FR-020b).
-   *              Daño = (10 + flat_bonus) × multiplicador, calculado por DamageCalculator
-   *              usando las cartas Pasivas equipadas y los debuffs activos.
-   *              Activa una animación visual de swing en la posición del cursor.
+   * @description Ejecuta el ataque básico melee del jugador si el cooldown lo
+   *              permite (FR-020b). Solo inflige daño si el jugador está
+   *              dentro del rango melee (BASIC_ATTACK_MELEE_RANGE px del
+   *              centro del jefe). Si está fuera, igualmente reproduce el
+   *              swing visual frente al jugador (golpe al aire).
+   *              Daño efectivo = (10 + flat_bonus) × multiplicador, calculado
+   *              por DamageCalculator con las cartas Pasivas y debuffs activos.
    */
   function tryBasicAttack() {
     if (state.isDestroyed || state.bossHp <= 0) return
     if (state.basicAttackCooldown > 0) return
     state.basicAttackCooldown = BASIC_ATTACK_COOLDOWN_MS
     state.swingTimer = BASIC_SWING_DURATION_MS
-    state.swingX = state.cursorX
-    state.swingY = state.cursorY
-    applyDamageToBoss(BASIC_ATTACK_BASE_DAMAGE)
+
+    // Dirección: del jugador hacia el cursor (preferida) o, si no hay cursor
+    // útil, hacia el jefe. El swing se dibuja al borde del jugador.
+    const pcx = state.playerX + PLAYER_W / 2
+    const pcy = state.playerY + PLAYER_H / 2
+    const dx = state.cursorX - pcx
+    const dy = state.cursorY - pcy
+    const len = Math.hypot(dx, dy) || 1
+    state.swingX = pcx + (dx / len) * (PLAYER_W / 2 + 18)
+    state.swingY = pcy + (dy / len) * (PLAYER_W / 2 + 18)
+
+    // Comprobación de rango: distancia jugador ↔ centro del jefe.
+    const bossCx = ARENA_WIDTH / 2
+    const bossCy = 130
+    const distToBoss = Math.hypot(bossCx - pcx, bossCy - pcy)
+    if (distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2) {
+      applyDamageToBoss(BASIC_ATTACK_BASE_DAMAGE)
+      state.swingHit = true
+    } else {
+      state.swingHit = false
+    }
   }
 
   // ─── Aplicación de daño al jefe (compartido por cartas y ataque básico) ───
@@ -249,10 +280,10 @@ export async function createCombatApp(options) {
    */
   function zoneToPerspectivePoly(z) {
     const inset = Math.min(z.width * 0.18, 40)
-    const x0 = z.x + inset,           y0 = z.y
+    const x0 = z.x + inset, y0 = z.y
     const x1 = z.x + z.width - inset, y1 = z.y
-    const x2 = z.x + z.width,         y2 = z.y + z.height
-    const x3 = z.x,                   y3 = z.y + z.height
+    const x2 = z.x + z.width, y2 = z.y + z.height
+    const x3 = z.x, y3 = z.y + z.height
     return [x0, y0, x1, y1, x2, y2, x3, y3]
   }
 
@@ -373,19 +404,37 @@ export async function createCombatApp(options) {
     }
   }
 
-  // ─── Dibujo de la animación de swing del ataque básico ─────────────────────
+  // ─── Dibujo de la animación de swing del ataque básico (melee) ────────────
   function drawSwing() {
     swingGfx.clear()
+
+    // Anillo de alcance melee (siempre visible mientras el jefe esté vivo)
+    // para que el jugador sepa cuándo está en rango para golpear.
+    if (state.bossHp > 0) {
+      const pcx = state.playerX + PLAYER_W / 2
+      const pcy = state.playerY + PLAYER_H / 2
+      const bossCx = ARENA_WIDTH / 2
+      const bossCy = 130
+      const distToBoss = Math.hypot(bossCx - pcx, bossCy - pcy)
+      const inRange = distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2
+      const ringColor = inRange ? 0xffd166 : 0x4a6680
+      const ringAlpha = inRange ? 0.55 : 0.18
+      swingGfx
+        .circle(pcx, pcy, BASIC_ATTACK_MELEE_RANGE)
+        .stroke({ color: ringColor, width: inRange ? 2 : 1, alpha: ringAlpha })
+    }
+
     if (state.swingTimer <= 0) return
     const t = state.swingTimer / BASIC_SWING_DURATION_MS  // 1 → 0
-    const radius = 18 + (1 - t) * 26
+    const radius = 14 + (1 - t) * 22
     const alpha = t
+    const color = state.swingHit ? COLORS.basicSwing : 0x99aabb
     swingGfx
       .circle(state.swingX, state.swingY, radius)
-      .stroke({ color: COLORS.basicSwing, width: 4, alpha })
+      .stroke({ color, width: 4, alpha })
     swingGfx
       .circle(state.swingX, state.swingY, radius * 0.55)
-      .stroke({ color: COLORS.basicSwing, width: 2, alpha: alpha * 0.7 })
+      .stroke({ color, width: 2, alpha: alpha * 0.7 })
   }
 
   // ─── Game loop ─────────────────────────────────────────────────────────────

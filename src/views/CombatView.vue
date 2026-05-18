@@ -43,7 +43,7 @@
         <div class="combat-view__controls-hint">
           <span><kbd>WASD</kbd> moverse</span>
           <span><kbd>Click izq</kbd> usar carta</span>
-          <span><kbd>Click der</kbd> ataque básico</span>
+          <span><kbd>Click der</kbd> ataque melee (acércate al jefe)</span>
         </div>
 
         <!-- HUD inferior: vida jugador (izq) + hotbar (der) -->
@@ -70,7 +70,7 @@
                 v-if="(cooldowns[card.id] ?? 0) > 0"
                 class="hotbar-slot__cooldown"
                 :style="{
-                  background: `conic-gradient(from -90deg, rgba(0,0,0,0.65) 0deg ${((cooldowns[card.id] ?? 0) / (card.cooldown || 1)) * 360}deg, transparent ${((cooldowns[card.id] ?? 0) / (card.cooldown || 1)) * 360}deg 360deg)`,
+                  background: `conic-gradient(from -90deg, rgba(0,0,0,0.65) 0deg ${((cooldowns[card.id] ?? 0) / ((card.cooldown || 1) * 1000)) * 360}deg, transparent ${((cooldowns[card.id] ?? 0) / ((card.cooldown || 1) * 1000)) * 360}deg 360deg)`,
                 }"
               >
                 <span class="hotbar-slot__cooldown-text">
@@ -155,7 +155,41 @@ const playerDebuffs = computed(() => playerStore.activeDebuffs)
 
 // ─── Cartas y cooldowns ─────────────────────────────────────────────────────
 const actionCards = computed(() => deckStore.actionCards)
-const cooldowns   = reactive({})
+/**
+ * Cooldowns por carta en MILISEGUNDOS restantes (los valores de cards.json están
+ * en segundos; aquí se convierten al activar la carta y se decrementan suave en
+ * cada frame con requestAnimationFrame para que el contador se vea bajar en
+ * decimales).
+ */
+const cooldowns = reactive({})
+let cooldownRafId = null
+let cooldownLastTs = 0
+
+function tickCooldowns(ts) {
+  if (!cooldownLastTs) cooldownLastTs = ts
+  const dt = ts - cooldownLastTs
+  cooldownLastTs = ts
+  let anyActive = false
+  for (const id of Object.keys(cooldowns)) {
+    if (cooldowns[id] > 0) {
+      cooldowns[id] = Math.max(0, cooldowns[id] - dt)
+      if (cooldowns[id] > 0) anyActive = true
+    }
+  }
+  if (anyActive) {
+    cooldownRafId = requestAnimationFrame(tickCooldowns)
+  } else {
+    cooldownRafId = null
+    cooldownLastTs = 0
+  }
+}
+
+function startCooldownLoop() {
+  if (cooldownRafId == null) {
+    cooldownLastTs = 0
+    cooldownRafId = requestAnimationFrame(tickCooldowns)
+  }
+}
 
 /**
  * @description Devuelve la etiqueta legible para un debuff mostrado en el HUD.
@@ -198,12 +232,9 @@ function activateCard(card) {
     combatController.teleportPlayer(fx.teleportDistance)
   }
 
-  // Arranca cuenta regresiva del cooldown
-  cooldowns[card.id] = card.cooldown ?? 0
-  const interval = setInterval(() => {
-    cooldowns[card.id] = Math.max(0, (cooldowns[card.id] ?? 0) - 0.1)
-    if (cooldowns[card.id] <= 0) clearInterval(interval)
-  }, 100)
+  // Arranca cuenta regresiva del cooldown (cards.json lo define en segundos)
+  cooldowns[card.id] = (card.cooldown ?? 0) * 1000
+  startCooldownLoop()
 }
 
 /** Atajo de teclado 1-4 para activar cartas (FR-020a). */
@@ -277,6 +308,10 @@ onBeforeUnmount(() => {
 onUnmounted(() => {
   combatController?.destroy()
   window.removeEventListener('keypress', onKeyPress)
+  if (cooldownRafId != null) {
+    cancelAnimationFrame(cooldownRafId)
+    cooldownRafId = null
+  }
 })
 </script>
 
