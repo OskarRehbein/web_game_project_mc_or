@@ -17,27 +17,35 @@
         <span class="reward-screen__gold-label">+ {{ rewards.gold }} monedas de oro</span>
       </div>
 
-      <!-- Card reward(s) -->
+      <!-- Card selection (pick 1 of 2) -->
       <div
-        v-if="rewards.cards?.length"
+        v-if="cardChoices.length"
         class="reward-screen__cards"
       >
         <p class="reward-screen__subtitle">
-          Carta{{ rewards.cards.length > 1 ? 's' : '' }} obtenida{{ rewards.cards.length > 1 ? 's' : '' }}:
+          Elige una carta para añadir a tu mazo:
         </p>
         <div class="reward-screen__card-list">
-          <div
-            v-for="card in rewards.cards"
+          <button
+            v-for="card in cardChoices"
             :key="card.id"
             class="reward-screen__card"
-            :class="`reward-screen__card--${card.rarity}`"
+            :class="[
+              `reward-screen__card--${card.rarity}`,
+              { 'reward-screen__card--picked': pickedCard?.id === card.id }
+            ]"
+            @click="pickedCard = card"
           >
             <span class="reward-screen__card-name">{{ card.name }}</span>
             <span class="reward-screen__card-type">{{ typeLabel(card.type) }}</span>
             <p class="reward-screen__card-desc">
               {{ card.description }}
             </p>
-          </div>
+            <span
+              v-if="pickedCard?.id === card.id"
+              class="reward-screen__card-check"
+            >✓</span>
+          </button>
         </div>
       </div>
     </div>
@@ -51,35 +59,60 @@
 
     <Button
       class="reward-screen__continue"
+      :disabled="mustPickCard && !pickedCard"
       @click="onContinue"
     >
-      Continuar →
+      {{ mustPickCard && !pickedCard ? 'Elige una carta primero' : 'Continuar →' }}
     </Button>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore.js'
+import { useDeckStore } from '@/stores/deckStore.js'
 import Button from '@/components/shared/Button.vue'
 
 /**
  * @description Reward screen shown after a successful combat encounter.
- *              Displays gold earned and card(s) obtained, then routes to the map.
+ *              Displays gold earned and a pick-one card selection from the
+ *              boss lootPool (2 random cards shown, player picks 1).
  *              Reads pendingRewards from gameStore (set by resolveCombatVictory, FR-022).
  */
 
 const router    = useRouter()
 const gameStore = useGameStore()
+const deckStore = useDeckStore()
 
-/**
- * @description Pending rewards object from the store (gold + cards array).
- * @returns {{ gold?: number, cards?: import('@/engine/entities/Card.js').Card[] } | null}
- */
+/** Pending rewards from the store ({ gold, cards[] }). */
 const rewards = computed(() => gameStore.pendingRewards)
 
-const TYPE_LABELS = { action: '⚡ Acción', passive: '🛡️ Pasiva', utility: '🔧 Utilidad', weapon: '⚔️ Arma', armor: '🪬 Armadura' }
+/** Card the player has clicked to select. */
+const pickedCard = ref(null)
+
+/**
+ * @description Samples up to 2 random cards from rewards.cards (the lootPool).
+ *              Computed once per render; order randomised client-side.
+ * @returns {import('@/engine/entities/Card.js').Card[]}
+ */
+const cardChoices = computed(() => {
+  const pool = rewards.value?.cards
+  if (!pool?.length) return []
+  const shuffled = [...pool].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, 2)
+})
+
+/** True when the player must pick a card before continuing. */
+const mustPickCard = computed(() => cardChoices.value.length > 0)
+
+const TYPE_LABELS = {
+  action: '⚡ Acción',
+  passive: '🛡️ Pasiva',
+  utility: '🔧 Utilidad',
+  weapon: '⚔️ Arma',
+  armor: '🪬 Armadura',
+}
 
 /**
  * @description Returns a human-readable label for a card type.
@@ -91,11 +124,15 @@ function typeLabel(type) {
 }
 
 /**
- * @description Navigates to the map after the player acknowledges the rewards.
- *              Clears pendingRewards so the screen doesn't re-show stale data.
+ * @description Adds the picked card to the deck, clears rewards, then routes to map.
+ *              If no cards were offered (rare edge case), skips addCard.
  * @returns {void}
  */
 function onContinue() {
+  if (mustPickCard.value && !pickedCard.value) return
+  if (pickedCard.value) {
+    deckStore.addCard(pickedCard.value)
+  }
   gameStore.pendingRewards = null
   router.push({ name: 'map' })
 }
@@ -168,11 +205,31 @@ function onContinue() {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-align: left;
+  color: inherit;
+}
+
+.reward-screen__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 .reward-screen__card--common  { border-color: #555; }
 .reward-screen__card--rare    { border-color: #6644cc; box-shadow: 0 0 12px rgba(102, 68, 204, 0.4); }
 .reward-screen__card--unique  { border-color: #ffaa00; box-shadow: 0 0 18px rgba(255, 170, 0, 0.5); }
+.reward-screen__card--picked  { outline: 3px solid #4488ff; outline-offset: 2px; }
+
+.reward-screen__card-check {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 1rem;
+  color: #4488ff;
+  font-weight: 700;
+}
 
 .reward-screen__card-name {
   font-weight: 700;
