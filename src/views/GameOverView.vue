@@ -76,7 +76,7 @@ const stats = computed(() => ({
  * @returns {void}
  */
 function onRetry() {
-  gameStore.startNewRun(gameStore.chosenArchetype ?? 'balanced')
+  gameStore.startNewRun(gameStore.chosenArchetype ?? 'pirata')
   router.push({ name: 'deck-select' })
 }
 
@@ -85,7 +85,7 @@ function onRetry() {
  * @returns {void}
  */
 function onMenu() {
-  gameStore.startNewRun(gameStore.chosenArchetype ?? 'balanced')
+  gameStore.startNewRun(gameStore.chosenArchetype ?? 'pirata')
   router.push({ name: 'menu' })
 }
 </script>

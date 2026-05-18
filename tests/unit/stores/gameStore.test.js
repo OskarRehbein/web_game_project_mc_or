@@ -16,19 +16,19 @@ describe('gameStore', () => {
     it('resets currentPhase to menu', () => {
       const store = useGameStore()
       store.currentPhase = 'combat'
-      store.startNewRun('action')
+      store.startNewRun('pirata')
       expect(store.currentPhase).toBe('menu')
     })
 
     /**
      * @goal   Verify startNewRun stores the chosen archetype id
-     * @input  startNewRun('balanced')
-     * @expect chosenArchetype === 'balanced'
+     * @input  startNewRun('navegante')
+     * @expect chosenArchetype === 'navegante'
      */
     it('stores the chosen archetype id', () => {
       const store = useGameStore()
-      store.startNewRun('balanced')
-      expect(store.chosenArchetype).toBe('balanced')
+      store.startNewRun('navegante')
+      expect(store.chosenArchetype).toBe('navegante')
     })
 
     /**
@@ -39,7 +39,7 @@ describe('gameStore', () => {
     it('resets regularIslandsCompleted to 0', () => {
       const store = useGameStore()
       store.regularIslandsCompleted = 5
-      store.startNewRun('action')
+      store.startNewRun('pirata')
       expect(store.regularIslandsCompleted).toBe(0)
     })
 
@@ -51,7 +51,7 @@ describe('gameStore', () => {
     it('clears bossIslandsDefeated', () => {
       const store = useGameStore()
       store.bossIslandsDefeated = [{ id: 'boss_1' }]
-      store.startNewRun('action')
+      store.startNewRun('pirata')
       expect(store.bossIslandsDefeated).toEqual([])
     })
 
@@ -63,7 +63,7 @@ describe('gameStore', () => {
     it('clears pendingDebuffs', () => {
       const store = useGameStore()
       store.pendingDebuffs = [{ type: 'damage', magnitude: 0.2, expireAfterCombat: true }]
-      store.startNewRun('action')
+      store.startNewRun('pirata')
       expect(store.pendingDebuffs).toEqual([])
     })
   })

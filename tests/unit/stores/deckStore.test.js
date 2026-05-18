@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useDeckStore } from '@/stores/deckStore.js'
-import { ARCHETYPES } from '@/engine/entities/DeckArchetype.js'
+import { ARCHETYPES, CARD_POOL } from '@/engine/entities/DeckArchetype.js'
+
+/** RNG determinista que devuelve siempre 0 (selecciona la primera carta del pool filtrado). */
+const rngZero = () => 0
 
 describe('deckStore', () => {
   beforeEach(() => {
@@ -10,96 +13,89 @@ describe('deckStore', () => {
 
   describe('initWithArchetype', () => {
     /**
-     * @goal   Verify the 'action' archetype loads exactly 3 Action cards
-     * @input  initWithArchetype('action')
-     * @expect cards.length === 3, all cards have type === 'action'
+     * @goal   Arquetipo 'pirata' produce 2 cartas: 1 action + 1 utility (FR-012)
      */
-    it('action archetype produces 3 action cards', () => {
+    it('pirata archetype produces 1 action + 1 utility', () => {
       const store = useDeckStore()
-      store.initWithArchetype('action')
-      expect(store.cards).toHaveLength(3)
-      expect(store.cards.every((c) => c.type === 'action')).toBe(true)
+      store.initWithArchetype('pirata', rngZero)
+      expect(store.cards).toHaveLength(2)
+      expect(store.actionCards).toHaveLength(1)
+      expect(store.utilityCards).toHaveLength(1)
+      expect(store.passiveCards).toHaveLength(0)
     })
 
     /**
-     * @goal   Verify the 'balanced' archetype loads 1 Action, 1 Passive, 1 Utility (FR-012)
-     * @input  initWithArchetype('balanced')
-     * @expect actionCards.length===1, passiveCards.length===1, utilityCards.length===1
+     * @goal   Arquetipo 'navegante' produce 2 cartas: 1 passive + 1 utility (FR-012)
      */
-    it('balanced archetype produces 1 action, 1 passive, 1 utility', () => {
+    it('navegante archetype produces 1 passive + 1 utility', () => {
       const store = useDeckStore()
-      store.initWithArchetype('balanced')
-      expect(store.actionCards).toHaveLength(1)
+      store.initWithArchetype('navegante', rngZero)
+      expect(store.cards).toHaveLength(2)
       expect(store.passiveCards).toHaveLength(1)
       expect(store.utilityCards).toHaveLength(1)
+      expect(store.actionCards).toHaveLength(0)
     })
 
     /**
-     * @goal   Verify the 'exploration' archetype loads 1 Action, 1 Passive, 2 Utility (FR-012)
-     * @input  initWithArchetype('exploration')
-     * @expect actionCards.length===1, passiveCards.length===1, utilityCards.length===2
+     * @goal   Las cartas seleccionadas pertenecen al pool definido en cards.json
      */
-    it('exploration archetype produces 1 action, 1 passive, 2 utility', () => {
+    it('all selected cards belong to the CARD_POOL', () => {
       const store = useDeckStore()
-      store.initWithArchetype('exploration')
-      expect(store.actionCards).toHaveLength(1)
-      expect(store.passiveCards).toHaveLength(1)
-      expect(store.utilityCards).toHaveLength(2)
+      store.initWithArchetype('pirata', rngZero)
+      const poolIds = CARD_POOL.map((c) => c.id)
+      for (const card of store.cards) {
+        expect(poolIds).toContain(card.id)
+      }
     })
 
     /**
-     * @goal   Verify the loaded cards match the exact cards defined in ARCHETYPES
-     * @input  initWithArchetype('action'), compare to ARCHETYPES.action.startingCards
-     * @expect store.cards deep-equals ARCHETYPES.action.startingCards
+     * @goal   Con un rng determinista, la composición es reproducible
      */
-    it('cards match the archetype startingCards definition', () => {
-      const store = useDeckStore()
-      store.initWithArchetype('action')
-      expect(store.cards).toEqual(ARCHETYPES.action.startingCards)
+    it('is deterministic given a seeded rng', () => {
+      const storeA = useDeckStore()
+      storeA.initWithArchetype('pirata', () => 0)
+      const idsA = storeA.cards.map((c) => c.id)
+
+      setActivePinia(createPinia())
+      const storeB = useDeckStore()
+      storeB.initWithArchetype('pirata', () => 0)
+      const idsB = storeB.cards.map((c) => c.id)
+
+      expect(idsA).toEqual(idsB)
     })
 
     /**
-     * @goal   Verify initWithArchetype throws on an unknown archetype id
-     * @input  initWithArchetype('invalid')
-     * @expect throws Error
+     * @goal   Lanza error si el arquetipo no existe
      */
     it('throws when given an unknown archetype id', () => {
       const store = useDeckStore()
       expect(() => store.initWithArchetype('invalid')).toThrow()
     })
+
+    /**
+     * @goal   Solo existen exactamente 2 arquetipos
+     */
+    it('exposes exactly 2 archetypes: pirata and navegante', () => {
+      expect(Object.keys(ARCHETYPES).sort()).toEqual(['navegante', 'pirata'])
+    })
   })
 
   describe('addCard', () => {
-    /**
-     * @goal   Verify addCard increases the deck length by 1
-     * @input  Empty deck, addCard with a valid card object
-     * @expect cards.length === 1
-     */
     it('increases cards.length by 1', () => {
       const store = useDeckStore()
-      store.addCard({ id: 'slash', name: 'Slash', type: 'action', rarity: 'common', effect: {}, cost: 15 })
+      store.addCard({ id: 'card_action_teleport', name: 'Teletransporte', type: 'action', rarity: 'common', effect: {}, cost: 20 })
       expect(store.cards).toHaveLength(1)
     })
 
-    /**
-     * @goal   Verify the added card is present in the deck
-     * @input  addCard with a card having id 'slash'
-     * @expect hasCard('slash') === true
-     */
     it('the added card is retrievable via hasCard', () => {
       const store = useDeckStore()
-      store.addCard({ id: 'slash', name: 'Slash', type: 'action', rarity: 'common', effect: {}, cost: 15 })
-      expect(store.hasCard('slash')).toBe(true)
+      store.addCard({ id: 'card_action_teleport', name: 'Teletransporte', type: 'action', rarity: 'common', effect: {}, cost: 20 })
+      expect(store.hasCard('card_action_teleport')).toBe(true)
     })
 
-    /**
-     * @goal   Verify multiple copies of the same card can be added (no dedup)
-     * @input  addCard called twice with the same card id
-     * @expect cards.length === 2
-     */
     it('allows duplicate card entries', () => {
       const store = useDeckStore()
-      const card = { id: 'slash', name: 'Slash', type: 'action', rarity: 'common', effect: {}, cost: 15 }
+      const card = { id: 'card_action_teleport', name: 'Teletransporte', type: 'action', rarity: 'common', effect: {}, cost: 20 }
       store.addCard(card)
       store.addCard(card)
       expect(store.cards).toHaveLength(2)
@@ -107,25 +103,15 @@ describe('deckStore', () => {
   })
 
   describe('removeCard', () => {
-    /**
-     * @goal   Verify removeCard removes exactly ONE instance of a utility card (FR-009)
-     * @input  Two copies of a utility card, removeCard called once
-     * @expect cards.length === 1 (one copy remains)
-     */
     it('removes only one instance of a utility card', () => {
       const store = useDeckStore()
-      const card = { id: 'nav_chart', name: "Navigator's Chart", type: 'utility', rarity: 'common', effect: {}, cost: 15 }
+      const card = { id: 'card_utility_master_key', name: 'Llave Maestra', type: 'utility', rarity: 'common', effect: {}, cost: 15 }
       store.addCard(card)
       store.addCard(card)
-      store.removeCard('nav_chart')
+      store.removeCard('card_utility_master_key')
       expect(store.cards).toHaveLength(1)
     })
 
-    /**
-     * @goal   Verify removeCard on a card id not in deck does not crash and deck is unchanged
-     * @input  Empty deck, removeCard('nonexistent')
-     * @expect cards.length === 0, no error thrown
-     */
     it('does nothing when card id is not found', () => {
       const store = useDeckStore()
       expect(() => store.removeCard('nonexistent')).not.toThrow()
@@ -134,65 +120,40 @@ describe('deckStore', () => {
   })
 
   describe('getters', () => {
-    /**
-     * @goal   Verify actionCards getter filters only action-type cards
-     * @input  One action card and one passive card
-     * @expect actionCards.length === 1
-     */
     it('actionCards returns only action-type cards', () => {
       const store = useDeckStore()
-      store.addCard({ id: 'slash', name: 'Slash', type: 'action', rarity: 'common', effect: {}, cost: 15 })
-      store.addCard({ id: 'iron', name: 'Iron Skin', type: 'passive', rarity: 'common', effect: {}, cost: 20 })
+      store.addCard({ id: 'a', name: 'A', type: 'action', rarity: 'common', effect: {}, cost: 20 })
+      store.addCard({ id: 'b', name: 'B', type: 'passive', rarity: 'common', effect: {}, cost: 20 })
       expect(store.actionCards).toHaveLength(1)
-      expect(store.actionCards[0].id).toBe('slash')
+      expect(store.actionCards[0].id).toBe('a')
     })
 
-    /**
-     * @goal   Verify passiveCards getter filters only passive-type cards
-     * @input  One passive card and one utility card
-     * @expect passiveCards.length === 1
-     */
     it('passiveCards returns only passive-type cards', () => {
       const store = useDeckStore()
-      store.addCard({ id: 'iron', name: 'Iron Skin', type: 'passive', rarity: 'common', effect: {}, cost: 20 })
-      store.addCard({ id: 'nav', name: 'Nav Chart', type: 'utility', rarity: 'common', effect: {}, cost: 15 })
+      store.addCard({ id: 'a', name: 'A', type: 'passive', rarity: 'common', effect: {}, cost: 20 })
+      store.addCard({ id: 'b', name: 'B', type: 'utility', rarity: 'common', effect: {}, cost: 15 })
       expect(store.passiveCards).toHaveLength(1)
-      expect(store.passiveCards[0].id).toBe('iron')
+      expect(store.passiveCards[0].id).toBe('a')
     })
 
-    /**
-     * @goal   Verify utilityCards getter filters only utility-type cards
-     * @input  One utility card and one action card
-     * @expect utilityCards.length === 1
-     */
     it('utilityCards returns only utility-type cards', () => {
       const store = useDeckStore()
-      store.addCard({ id: 'nav', name: 'Nav Chart', type: 'utility', rarity: 'common', effect: {}, cost: 15 })
-      store.addCard({ id: 'slash', name: 'Slash', type: 'action', rarity: 'common', effect: {}, cost: 15 })
+      store.addCard({ id: 'a', name: 'A', type: 'utility', rarity: 'common', effect: {}, cost: 15 })
+      store.addCard({ id: 'b', name: 'B', type: 'action', rarity: 'common', effect: {}, cost: 20 })
       expect(store.utilityCards).toHaveLength(1)
-      expect(store.utilityCards[0].id).toBe('nav')
+      expect(store.utilityCards[0].id).toBe('a')
     })
 
-    /**
-     * @goal   Verify hasCard returns false when deck is empty
-     * @input  Empty deck, hasCard('slash')
-     * @expect false
-     */
     it('hasCard returns false on an empty deck', () => {
       const store = useDeckStore()
-      expect(store.hasCard('slash')).toBe(false)
+      expect(store.hasCard('card_action_teleport')).toBe(false)
     })
   })
 
   describe('reset', () => {
-    /**
-     * @goal   Verify reset empties the deck regardless of prior state
-     * @input  Deck initialized with 'action' archetype, then reset()
-     * @expect cards.length === 0
-     */
     it('empties the deck', () => {
       const store = useDeckStore()
-      store.initWithArchetype('action')
+      store.initWithArchetype('pirata', rngZero)
       store.reset()
       expect(store.cards).toHaveLength(0)
     })

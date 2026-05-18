@@ -1,10 +1,10 @@
 <template>
   <main class="deck-selection">
     <h1 class="deck-selection__title">
-      ⚓ Elige tu Mazo
+      ⚓ Elige tu Arquetipo
     </h1>
     <p class="deck-selection__subtitle">
-      El arquetipo define tus cartas de inicio. Podrás ampliar tu mazo durante la aventura.
+      Cada arquetipo te da 2 cartas iniciales elegidas al azar del pool. Podrás ampliar tu mazo durante la aventura.
     </p>
 
     <div class="deck-selection__archetypes">
@@ -27,12 +27,12 @@
 
         <ul class="archetype-card__cards">
           <li
-            v-for="card in archetype.startingCards"
-            :key="card.id"
+            v-for="(type, idx) in archetype.composition"
+            :key="idx"
             class="archetype-card__card-item"
-            :class="`archetype-card__card-item--${card.type}`"
+            :class="`archetype-card__card-item--${type}`"
           >
-            {{ TYPE_ICONS[card.type] }} {{ card.name }}
+            {{ TYPE_ICONS[type] }} 1 carta {{ TYPE_LABELS[type] }} aleatoria
           </li>
         </ul>
 
@@ -71,13 +71,13 @@ const selected = ref(null)
 /** Array form of ARCHETYPES for v-for iteration. */
 const archetypes = computed(() => Object.values(ARCHETYPES))
 
-const ARCHETYPE_ICONS = { action: '⚔️', balanced: '⚖️', exploration: '🧭' }
-const TYPE_ICONS       = { action: '⚡', passive: '🛡️', utility: '🔧' }
+const ARCHETYPE_ICONS = { pirata: '🏴‍☠️', navegante: '🧭' }
+const TYPE_ICONS      = { action: '⚡', passive: '🛡️', utility: '🔧' }
+const TYPE_LABELS     = { action: 'de Acción', passive: 'Pasiva', utility: 'de Utilidad' }
 
 /**
- * @description Starts a new run with the chosen archetype and navigates to the map.
- *              Calls gameStore.startNewRun (resets state), deckStore.initWithArchetype
- *              (populates starting cards), then navigates to /map.
+ * @description Inicia una nueva partida con el arquetipo elegido y navega al mapa.
+ *              Las cartas iniciales se eligen aleatoriamente del pool en ese momento.
  */
 function onStart() {
   if (!selected.value) return
@@ -111,12 +111,12 @@ function onStart() {
   font-size: 1rem;
   margin: 0;
   text-align: center;
+  max-width: 560px;
 }
 
-/* ── Archetype grid ── */
 .deck-selection__archetypes {
   display: flex;
-  gap: 24px;
+  gap: 32px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -125,9 +125,9 @@ function onStart() {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  width: 240px;
-  padding: 24px 20px;
+  gap: 14px;
+  width: 280px;
+  padding: 28px 22px;
   border-radius: 12px;
   border: 2px solid #1e3a5a;
   background: #071828;
@@ -149,17 +149,17 @@ function onStart() {
 }
 
 .archetype-card__icon {
-  font-size: 2rem;
+  font-size: 2.4rem;
 }
 
 .archetype-card__name {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 700;
   margin: 0;
 }
 
 .archetype-card__desc {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: #7788aa;
   margin: 0;
   line-height: 1.5;
@@ -171,14 +171,14 @@ function onStart() {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   border-top: 1px solid #1e3a5a;
-  padding-top: 10px;
+  padding-top: 12px;
 }
 
 .archetype-card__card-item {
-  font-size: 0.78rem;
-  padding: 3px 8px;
+  font-size: 0.82rem;
+  padding: 4px 10px;
   border-radius: 4px;
   background: #0d1f35;
   color: #aabbcc;
@@ -200,7 +200,6 @@ function onStart() {
   border-radius: 12px;
 }
 
-/* ── Start button ── */
 .deck-selection__start-btn {
   margin-top: 8px;
   font-size: 1.1rem;

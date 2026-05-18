@@ -55,7 +55,7 @@ El jugador acumula cartas a lo largo de la partida a través de eventos, combate
 
 **Acceptance Scenarios**:
 
-1. **Given** el jugador inicia una nueva partida, **When** se presenta la pantalla de selección de mazo, **Then** los tres arquetipos ("Acción", "Equilibrado", "Exploración") aparecen como opciones seleccionables con su composición de cartas visible antes de confirmar.
+1. **Given** el jugador inicia una nueva partida, **When** se presenta la pantalla de selección de mazo, **Then** los dos arquetipos ("Pirata", "Navegante") aparecen como opciones seleccionables con la composición por subtipo (no las cartas específicas, ya que se eligen al azar) visible antes de confirmar.
 2. **Given** el jugador derrota a un jefe menor, **When** se resuelven las recompensas, **Then** se ofrecen una o más cartas aleatorias del pool correspondiente al nivel del jefe.
 3. **Given** el jugador llega a un evento de tienda, **When** abre la tienda, **Then** ve una selección de cartas disponibles con su coste en oro.
 4. **Given** el jugador tiene suficiente oro, **When** compra una carta en la tienda, **Then** la carta se agrega a su mazo y el oro se descuenta.
@@ -100,7 +100,7 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 ### Edge Cases
 
 - ¿Qué ocurre si el banco de islas prediseñadas se agota antes de generar las 3 opciones? → El sistema debe muestrear con reemplazo del pool de islas regulares, evitando repetir la isla inmediata anterior.
-- ¿Qué sucede si el jugador tiene 0 cartas de Acción durante el combate? → El jugador puede pelear usando solo el ataque básico del arma equipada; el combate no queda bloqueado.
+- ¿Qué sucede si el jugador tiene 0 cartas de Acción durante el combate? → El jugador puede pelear usando solo el ataque básico (click derecho); el combate no queda bloqueado.
 - ¿Qué pasa si el jugador intenta usar una carta de Utilidad que ya no aplica al evento actual? → La carta permanece en el inventario; las opciones de utilidad solo aparecen en los eventos que las aceptan.
 - ¿Qué ocurre si el jugador cierra el navegador durante un combate? → La partida no se guarda (roguelike sin persistencia); al reabrir se presenta el menú principal.
 - ¿Qué pasa si el RNG produce la misma isla de jefe dos veces en la misma partida? → Las islas de jefe derrotadas se eliminan del pool; no pueden repetirse.
@@ -127,11 +127,10 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 - **FR-009**: Las cartas de **Utilidad** DEBEN ser consumibles: desaparecen del inventario tras ser usadas en un evento de exploración.
 - **FR-010**: Las cartas de Utilidad DEBEN desbloquear opciones de decisión adicionales en los eventos que las requieran, visibles como opciones bloqueadas cuando el jugador no las posee.
 - **FR-011**: El jugador DEBE poder consultar su mazo completo (cartas, tipos, efectos) en cualquier momento fuera del combate.
-- **FR-012**: Al iniciar una nueva partida, el jugador DEBE elegir uno de tres **arquetipos de mazo inicial** antes de entrar al mapa:
-  - **"Acción"**: 3 cartas de Acción (orientado a combate puro).
-  - **"Equilibrado"**: 1 Acción + 1 Pasiva + 1 Utilidad (versatilidad desde el inicio).
-  - **"Exploración"**: 1 Acción + 1 Pasiva + 2 Utilidad (optimizado para eventos de isla y decisiones bloqueadas).
-  El arquetipo elegido define la composición exacta del mazo; los tres arquetipos son siempre ofrecidos (no se generan aleatoriamente).
+- **FR-012**: Al iniciar una nueva partida, el jugador DEBE elegir uno de dos **arquetipos de mazo inicial** antes de entrar al mapa:
+  - **"Pirata"**: 1 carta de Acción aleatoria + 1 carta de Utilidad aleatoria (orientado a combate directo).
+  - **"Navegante"**: 1 carta Pasiva aleatoria + 1 carta de Utilidad aleatoria (orientado a resistencia y exploración).
+  Las cartas concretas se eligen aleatoriamente del pool al confirmar la selección; la composición por subtipo es fija.
 
 #### Fase de Combate
 
@@ -140,9 +139,11 @@ Ocasionalmente, mientras el jugador navega hacia una isla, aparece un evento oce
 - **FR-015**: Los jefes DEBEN telegrafisar sus ataques antes de su activación, con un mínimo de 1 segundo de advertencia visual.
 - **FR-016**: La barra de vida del jefe DEBE ser visible en todo momento durante el combate.
 - **FR-017**: La barra de vida del jugador DEBE ser visible en todo momento durante el combate.
-- **FR-018**: El espacio de combate DEBE incluir plataformas que el jugador pueda usar para posicionarse.
+- **FR-018**: El espacio de combate DEBE ser una arena 2D abierta de estilo arcade bossfight: sin plataformas saltables. El jugador se mueve libremente por el suelo de la arena y el jefe es parte del escenario (no es alcanzable por colisión directa, solo recibe daño por cartas/ataque básico).
 - **FR-019**: El daño del jugador al jefe DEBE calcularse como `daño_final = (damage_base + flat_bonus) × multiplicador`, donde `damage_base = 10`. Los bonos planos y los multiplicadores provienen de cartas Pasivas equipadas y pueden coexistir simultáneamente.
 - **FR-020**: Las cartas de Acción usadas durante el combate DEBEN aplicar su efecto inmediatamente y entrar en cooldown hasta poder usarse nuevamente.
+- **FR-020a**: Los controles de combate DEBEN ser: movimiento con **WASD** o flechas, **click izquierdo** sobre la hotbar (o teclas 1-4) para activar una carta de Acción, **click derecho** en cualquier zona de la arena para realizar el **ataque básico** (siempre disponible, sin cooldown significativo) en dirección al cursor.
+- **FR-020b**: El ataque básico DEBE infligir `damage_base = 10` modificado por los mismos bonos pasivos que las cartas de Acción (`(10 + flat_bonus) × multiplicador`), y NO consume cartas ni recursos. Su único propósito es garantizar que el combate nunca quede bloqueado si el jugador no tiene cartas de Acción disponibles.
 - **FR-021**: El combate DEBE terminar con victoria cuando el HP del jefe llegue a 0.
 - **FR-022**: Al terminar un combate con victoria, el sistema DEBE calcular y mostrar las recompensas (oro, cartas) antes de retornar a la fase de exploración.
 
