@@ -44,6 +44,8 @@ const COLORS = {
   telegraph: 0xffaa00,
   danger: 0xff2200,
   basicSwing: 0xffffff,
+  shadow: 0x000000,
+  shield: 0x88ddff,
 }
 
 /** Velocidad de movimiento del jugador en px/s */
@@ -238,6 +240,22 @@ export async function createCombatApp(options) {
   }
 
   // ─── Telegrafiado y ejecución de patrones ──────────────────────────────────
+  /**
+   * @description Convierte un rectángulo plano {x,y,width,height} en un trapecio
+   *              en perspectiva (borde superior más angosto) para que las zonas
+   *              de daño se vean apoyadas en el suelo, no flotando en el aire.
+   * @param {{x:number,y:number,width:number,height:number}} z
+   * @returns {number[]} Lista plana [x0,y0, x1,y1, x2,y2, x3,y3] lista para Graphics.poly()
+   */
+  function zoneToPerspectivePoly(z) {
+    const inset = Math.min(z.width * 0.18, 40)
+    const x0 = z.x + inset,           y0 = z.y
+    const x1 = z.x + z.width - inset, y1 = z.y
+    const x2 = z.x + z.width,         y2 = z.y + z.height
+    const x3 = z.x,                   y3 = z.y + z.height
+    return [x0, y0, x1, y1, x2, y2, x3, y3]
+  }
+
   function beginTelegraph() {
     const eligible = getEligiblePatterns(boss.attackPatterns, state.bossHp, state.bossMaxHp)
     if (eligible.length === 0) return
@@ -249,12 +267,14 @@ export async function createCombatApp(options) {
 
     telegraphGfx.clear()
     for (const z of state.activeZones) {
+      const poly = zoneToPerspectivePoly(z)
+      telegraphGfx.poly(poly).fill({ color: COLORS.telegraph, alpha: 0.30 })
+      telegraphGfx.poly(poly).stroke({ color: COLORS.telegraph, width: 2, alpha: 0.9 })
+      // Línea base resaltada (donde "toca el suelo")
       telegraphGfx
-        .rect(z.x, z.y, z.width, z.height)
-        .fill({ color: COLORS.telegraph, alpha: 0.35 })
-      telegraphGfx
-        .rect(z.x, z.y, z.width, z.height)
-        .stroke({ color: COLORS.telegraph, width: 2, alpha: 0.9 })
+        .moveTo(poly[6], poly[7])
+        .lineTo(poly[4], poly[5])
+        .stroke({ color: COLORS.telegraph, width: 3, alpha: 1 })
     }
   }
 
@@ -262,16 +282,22 @@ export async function createCombatApp(options) {
     state.telegraphActive = false
     telegraphGfx.clear()
 
-    // Flash de peligro
+    // Flash de peligro con la misma perspectiva
     for (const z of state.activeZones) {
-      telegraphGfx.rect(z.x, z.y, z.width, z.height).fill({ color: COLORS.danger, alpha: 0.75 })
+      const poly = zoneToPerspectivePoly(z)
+      telegraphGfx.poly(poly).fill({ color: COLORS.danger, alpha: 0.75 })
     }
 
-    // Colisión con el jugador
+    // Colisión con el jugador (AABB sobre el rectángulo original, no el trapecio)
     const playerRect = { x: state.playerX, y: state.playerY, width: PLAYER_W, height: PLAYER_H }
     const hits = getCollisions(playerRect, state.activeZones)
+    const isShielded = state.elapsed < state.shieldUntil
     if (hits.length > 0) {
-      onPlayerHit?.(state.currentPattern.damage ?? 10)
+      if (isShielded) {
+        state.shieldFlash = 280
+      } else {
+        onPlayerHit?.(state.currentPattern.damage ?? 10)
+      }
     }
 
     // Limpia el flash tras 300 ms
@@ -458,7 +484,7 @@ export async function createCombatApp(options) {
       const len = Math.hypot(dx, dy) || 1
       state.playerX += (dx / len) * distance
       state.playerY += (dy / len) * distance
-      state.playerX = Math.max(0, Math.min(ARENA_WIDTH  - PLAYER_W, state.playerX))
+      state.playerX = Math.max(0, Math.min(ARENA_WIDTH - PLAYER_W, state.playerX))
       state.playerY = Math.max(220, Math.min(ARENA_HEIGHT - PLAYER_H, state.playerY))
     },
 

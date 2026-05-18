@@ -30,18 +30,18 @@ const MIN_SHOP_PRICE = 15
  * @throws {Error} If item.cost < MIN_SHOP_PRICE (invariant violation)
  */
 export function attemptPurchase(playerGold, item) {
-  if (item.cost < MIN_SHOP_PRICE) {
-    throw new Error(
-      `Shop item price must be >= ${MIN_SHOP_PRICE} gold, got ${item.cost}. ` +
-      'All shop items must have a valid price.'
-    )
-  }
+    if (item.cost < MIN_SHOP_PRICE) {
+        throw new Error(
+            `Shop item price must be >= ${MIN_SHOP_PRICE} gold, got ${item.cost}. ` +
+            'All shop items must have a valid price.'
+        )
+    }
 
-  if (playerGold < item.cost) {
-    return { success: false }
-  }
+    if (playerGold < item.cost) {
+        return { success: false }
+    }
 
-  return { success: true, card: item }
+    return { success: true, card: item }
 }
 
 /**
@@ -55,16 +55,16 @@ export function attemptPurchase(playerGold, item) {
  * @returns {Array<{ cost: number } & object>} Shuffled catalog subset
  */
 export function generateShopCatalog(cardPool, catalogSize, rng) {
-  const eligible = cardPool.filter((card) => card.cost >= MIN_SHOP_PRICE)
-  const available = [...eligible]
-  const count = Math.min(catalogSize, available.length)
-  const catalog = []
+    const eligible = cardPool.filter((card) => card.cost >= MIN_SHOP_PRICE)
+    const available = [...eligible]
+    const count = Math.min(catalogSize, available.length)
+    const catalog = []
 
-  for (let i = 0; i < count; i++) {
-    const idx = Math.floor(rng() * available.length)
-    catalog.push(available[idx])
-    available.splice(idx, 1)
-  }
+    for (let i = 0; i < count; i++) {
+        const idx = Math.floor(rng() * available.length)
+        catalog.push(available[idx])
+        available.splice(idx, 1)
+    }
 
-  return catalog
+    return catalog
 }

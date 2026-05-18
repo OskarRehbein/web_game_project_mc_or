@@ -66,11 +66,17 @@
             >
               <span class="hotbar-slot__key">{{ idx + 1 }}</span>
               <span class="hotbar-slot__name">{{ card.name }}</span>
-              <CooldownIndicator
-                :card-name="card.name"
-                :cooldown-total="card.cooldown ?? 0"
-                :cooldown-remaining="cooldowns[card.id] ?? 0"
-              />
+              <div
+                v-if="(cooldowns[card.id] ?? 0) > 0"
+                class="hotbar-slot__cooldown"
+                :style="{
+                  background: `conic-gradient(from -90deg, rgba(0,0,0,0.65) 0deg ${((cooldowns[card.id] ?? 0) / (card.cooldown || 1)) * 360}deg, transparent ${((cooldowns[card.id] ?? 0) / (card.cooldown || 1)) * 360}deg 360deg)`,
+                }"
+              >
+                <span class="hotbar-slot__cooldown-text">
+                  {{ ((cooldowns[card.id] ?? 0) / 1000).toFixed(1) }}s
+                </span>
+              </div>
             </button>
             <div
               v-if="actionCards.length === 0"
@@ -103,7 +109,6 @@ import { useDeckStore } from '@/stores/deckStore.js'
 import { createCombatApp } from '@/engine/combat/CombatEngine.js'
 import BossHealthBar from '@/components/hud/BossHealthBar.vue'
 import HealthBar from '@/components/hud/HealthBar.vue'
-import CooldownIndicator from '@/components/hud/CooldownIndicator.vue'
 
 /**
  * @description Pantalla de combate fullscreen. Monta el canvas PixiJS en onMounted,
@@ -388,6 +393,23 @@ onUnmounted(() => {
   line-height: 1.1;
   max-height: 28px;
   overflow: hidden;
+}
+
+.hotbar-slot__cooldown {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hotbar-slot__cooldown-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .hotbar-empty {

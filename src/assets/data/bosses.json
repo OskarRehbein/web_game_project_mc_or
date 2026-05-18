@@ -13,7 +13,12 @@
         "telegraphDurationMs": 1200,
         "damage": 15,
         "zones": [
-          { "x": 480, "y": 300, "width": 200, "height": 80 }
+          {
+            "x": 480,
+            "y": 300,
+            "width": 200,
+            "height": 80
+          }
         ]
       },
       {
@@ -22,9 +27,24 @@
         "telegraphDurationMs": 1500,
         "damage": 10,
         "zones": [
-          { "x": 100, "y": 200, "width": 80, "height": 80 },
-          { "x": 400, "y": 350, "width": 80, "height": 80 },
-          { "x": 700, "y": 250, "width": 80, "height": 80 }
+          {
+            "x": 100,
+            "y": 200,
+            "width": 80,
+            "height": 80
+          },
+          {
+            "x": 400,
+            "y": 350,
+            "width": 80,
+            "height": 80
+          },
+          {
+            "x": 700,
+            "y": 250,
+            "width": 80,
+            "height": 80
+          }
         ]
       },
       {
@@ -33,7 +53,12 @@
         "telegraphDurationMs": 2000,
         "damage": 25,
         "zones": [
-          { "x": 200, "y": 180, "width": 560, "height": 200 }
+          {
+            "x": 200,
+            "y": 180,
+            "width": 560,
+            "height": 200
+          }
         ]
       }
     ],
@@ -44,7 +69,9 @@
         "type": "action",
         "rarity": "common",
         "description": "Lanza un golpe empapado que hace 12 de daño.",
-        "effect": { "damage": 12 },
+        "effect": {
+          "damage": 12
+        },
         "cooldown": 3,
         "cost": 0
       },
@@ -54,7 +81,9 @@
         "type": "passive",
         "rarity": "common",
         "description": "La concha te otorga +15 de vida máxima.",
-        "effect": { "flatHp": 15 },
+        "effect": {
+          "flatHp": 15
+        },
         "cost": 0
       }
     ]
