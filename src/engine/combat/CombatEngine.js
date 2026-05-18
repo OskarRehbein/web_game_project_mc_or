@@ -26,24 +26,24 @@ import { getEligiblePatterns, pickPattern } from './AttackPatternSelector.js'
 import { getCollisions } from './CollisionSystem.js'
 import { calculateDamage } from './DamageCalculator.js'
 
-const ARENA_WIDTH  = 960
+const ARENA_WIDTH = 960
 const ARENA_HEIGHT = 540
 
 /** Paleta visual de la arena */
 const COLORS = {
-  bgTop:        0x0a1a2e,
-  bgBottom:     0x162447,
-  arenaFloor:   0x1f4068,
-  arenaEdge:    0xe94560,
+  bgTop: 0x0a1a2e,
+  bgBottom: 0x162447,
+  arenaFloor: 0x1f4068,
+  arenaEdge: 0xe94560,
   arenaEdgeAlt: 0x533483,
-  player:       0x4ad8e0,
-  playerGlow:   0x88f0ff,
-  boss:         0xc73e3a,
-  bossGlow:     0xff7a6b,
-  bossEye:      0xffe066,
-  telegraph:    0xffaa00,
-  danger:       0xff2200,
-  basicSwing:   0xffffff,
+  player: 0x4ad8e0,
+  playerGlow: 0x88f0ff,
+  boss: 0xc73e3a,
+  bossGlow: 0xff7a6b,
+  bossEye: 0xffe066,
+  telegraph: 0xffaa00,
+  danger: 0xff2200,
+  basicSwing: 0xffffff,
 }
 
 /** Velocidad de movimiento del jugador en px/s */
@@ -145,15 +145,17 @@ export async function createCombatApp(options) {
     swingX: 0,
     swingY: 0,
     elapsed: 0,              // tiempo total para animaciones de idle
+    shieldUntil: 0,          // state.elapsed hasta el que el jugador es invulnerable
+    shieldFlash: 0,          // ms restantes del flash visual al bloquear un golpe
   }
 
   // ─── Contenedores gráficos ─────────────────────────────────────────────────
-  const bgGfx        = new Graphics()
-  const floorGfx     = new Graphics()
+  const bgGfx = new Graphics()
+  const floorGfx = new Graphics()
   const telegraphGfx = new Graphics()
-  const bossGfx      = new Graphics()
-  const playerGfx    = new Graphics()
-  const swingGfx     = new Graphics()
+  const bossGfx = new Graphics()
+  const playerGfx = new Graphics()
+  const swingGfx = new Graphics()
 
   app.stage.addChild(bgGfx, floorGfx, telegraphGfx, bossGfx, playerGfx, swingGfx)
 
@@ -163,8 +165,8 @@ export async function createCombatApp(options) {
   for (let i = 0; i < BAND_COUNT; i++) {
     const t = i / (BAND_COUNT - 1)
     const r = Math.round(((COLORS.bgTop >> 16) & 0xff) * (1 - t) + ((COLORS.bgBottom >> 16) & 0xff) * t)
-    const g = Math.round(((COLORS.bgTop >> 8) & 0xff)  * (1 - t) + ((COLORS.bgBottom >> 8)  & 0xff) * t)
-    const b = Math.round((COLORS.bgTop & 0xff)         * (1 - t) + (COLORS.bgBottom & 0xff)         * t)
+    const g = Math.round(((COLORS.bgTop >> 8) & 0xff) * (1 - t) + ((COLORS.bgBottom >> 8) & 0xff) * t)
+    const b = Math.round((COLORS.bgTop & 0xff) * (1 - t) + (COLORS.bgBottom & 0xff) * t)
     const color = (r << 16) | (g << 8) | b
     bgGfx.rect(0, (ARENA_HEIGHT / BAND_COUNT) * i, ARENA_WIDTH, ARENA_HEIGHT / BAND_COUNT + 1).fill(color)
   }
@@ -187,7 +189,7 @@ export async function createCombatApp(options) {
 
   // ─── Entrada de teclado y mouse ────────────────────────────────────────────
   function onKeyDown(e) { state.keys[e.code] = true }
-  function onKeyUp(e)   { state.keys[e.code] = false }
+  function onKeyUp(e) { state.keys[e.code] = false }
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
 
@@ -195,8 +197,8 @@ export async function createCombatApp(options) {
     const rect = app.canvas.getBoundingClientRect()
     // Reescala las coordenadas del mouse al espacio lógico 960×540 por si el
     // canvas está visualmente escalado por CSS.
-    state.cursorX = ((e.clientX - rect.left) / rect.width)  * ARENA_WIDTH
-    state.cursorY = ((e.clientY - rect.top)  / rect.height) * ARENA_HEIGHT
+    state.cursorX = ((e.clientX - rect.left) / rect.width) * ARENA_WIDTH
+    state.cursorY = ((e.clientY - rect.top) / rect.height) * ARENA_HEIGHT
   }
   function onMouseDown(e) {
     // Botón 2 = click derecho → ataque básico (FR-020a, FR-020b)
@@ -240,9 +242,9 @@ export async function createCombatApp(options) {
     const eligible = getEligiblePatterns(boss.attackPatterns, state.bossHp, state.bossMaxHp)
     if (eligible.length === 0) return
 
-    state.currentPattern  = pickPattern(eligible, Math.random)
-    state.activeZones     = state.currentPattern.zones ?? []
-    state.telegraphTimer  = state.currentPattern.telegraphDurationMs
+    state.currentPattern = pickPattern(eligible, Math.random)
+    state.activeZones = state.currentPattern.zones ?? []
+    state.telegraphTimer = state.currentPattern.telegraphDurationMs
     state.telegraphActive = true
 
     telegraphGfx.clear()
@@ -290,6 +292,8 @@ export async function createCombatApp(options) {
     bossGfx.clear()
     const cx = ARENA_WIDTH / 2
     const cy = 130 + Math.sin(state.elapsed / 600) * 6   // flotación suave
+    // Sombra proyectada en el suelo (perspectiva)
+    bossGfx.ellipse(cx, ARENA_HEIGHT - 60, BOSS_W / 2 + 10, 14).fill({ color: COLORS.shadow, alpha: 0.35 })
     // Aura externa
     bossGfx.ellipse(cx, cy, BOSS_W / 2 + 14, BOSS_H / 2 + 10).fill({ color: COLORS.bossGlow, alpha: 0.18 })
     // Cuerpo
@@ -309,6 +313,8 @@ export async function createCombatApp(options) {
     playerGfx.clear()
     const cx = state.playerX + PLAYER_W / 2
     const cy = state.playerY + PLAYER_H / 2
+    // Sombra elíptica en el suelo justo bajo el jugador
+    playerGfx.ellipse(cx, state.playerY + PLAYER_H + 4, PLAYER_W / 2 + 2, 5).fill({ color: COLORS.shadow, alpha: 0.45 })
     // Aura
     playerGfx.circle(cx, cy, PLAYER_W / 2 + 6).fill({ color: COLORS.playerGlow, alpha: 0.25 })
     // Cuerpo
@@ -321,6 +327,24 @@ export async function createCombatApp(options) {
     const nx = dx / len
     const ny = dy / len
     playerGfx.circle(cx + nx * (PLAYER_W / 2 - 4), cy + ny * (PLAYER_W / 2 - 4), 4).fill(0x0a4a52)
+    // Anillo de escudo activo (FR-020 efecto card_action_shield)
+    const isShielded = state.elapsed < state.shieldUntil
+    if (isShielded) {
+      const pulse = 1 + Math.sin(state.elapsed / 90) * 0.12
+      playerGfx
+        .circle(cx, cy, (PLAYER_W / 2 + 10) * pulse)
+        .stroke({ color: COLORS.shield, width: 3, alpha: 0.85 })
+      playerGfx
+        .circle(cx, cy, (PLAYER_W / 2 + 6) * pulse)
+        .stroke({ color: COLORS.shield, width: 1, alpha: 0.45 })
+    }
+    // Flash extra al bloquear un golpe
+    if (state.shieldFlash > 0) {
+      const t = state.shieldFlash / 280
+      playerGfx
+        .circle(cx, cy, PLAYER_W / 2 + 22 * (1 - t))
+        .stroke({ color: 0xffffff, width: 4, alpha: t })
+    }
   }
 
   // ─── Dibujo de la animación de swing del ataque básico ─────────────────────
@@ -329,7 +353,7 @@ export async function createCombatApp(options) {
     if (state.swingTimer <= 0) return
     const t = state.swingTimer / BASIC_SWING_DURATION_MS  // 1 → 0
     const radius = 18 + (1 - t) * 26
-    const alpha  = t
+    const alpha = t
     swingGfx
       .circle(state.swingX, state.swingY, radius)
       .stroke({ color: COLORS.basicSwing, width: 4, alpha })
@@ -346,13 +370,13 @@ export async function createCombatApp(options) {
 
     // Movimiento del jugador
     const speed = PLAYER_BASE_SPEED * (dt / 1000)
-    if (state.keys['ArrowLeft']  || state.keys['KeyA']) state.playerX -= speed
+    if (state.keys['ArrowLeft'] || state.keys['KeyA']) state.playerX -= speed
     if (state.keys['ArrowRight'] || state.keys['KeyD']) state.playerX += speed
-    if (state.keys['ArrowUp']    || state.keys['KeyW']) state.playerY -= speed
-    if (state.keys['ArrowDown']  || state.keys['KeyS']) state.playerY += speed
+    if (state.keys['ArrowUp'] || state.keys['KeyW']) state.playerY -= speed
+    if (state.keys['ArrowDown'] || state.keys['KeyS']) state.playerY += speed
 
     // Confina al jugador dentro de la arena (zona inferior para no solapar al jefe)
-    state.playerX = Math.max(0, Math.min(ARENA_WIDTH  - PLAYER_W, state.playerX))
+    state.playerX = Math.max(0, Math.min(ARENA_WIDTH - PLAYER_W, state.playerX))
     state.playerY = Math.max(220, Math.min(ARENA_HEIGHT - PLAYER_H, state.playerY))
 
     // Cooldown del ataque básico
@@ -361,6 +385,9 @@ export async function createCombatApp(options) {
     }
     if (state.swingTimer > 0) {
       state.swingTimer = Math.max(0, state.swingTimer - dt)
+    }
+    if (state.shieldFlash > 0) {
+      state.shieldFlash = Math.max(0, state.shieldFlash - dt)
     }
 
     drawBoss()
@@ -402,6 +429,53 @@ export async function createCombatApp(options) {
     dealDamageToBoss(damage) {
       if (state.isDestroyed || state.bossHp <= 0) return
       applyDamageToBoss(damage)
+    },
+
+    /**
+     * @description Activa el escudo del jugador durante `durationMs` milisegundos.
+     *              Mientras esté activo, las zonas de daño no aplican onPlayerHit (FR-020,
+     *              carta card_action_shield). Si ya había escudo activo, se reemplaza.
+     * @param {number} durationMs - Duración del escudo en ms
+     * @returns {void}
+     */
+    activateShield(durationMs) {
+      if (state.isDestroyed) return
+      state.shieldUntil = state.elapsed + durationMs
+    },
+
+    /**
+     * @description Teletransporta al jugador `distance` píxeles en la dirección del cursor
+     *              (carta card_action_teleport). Se clampea a los límites de la arena.
+     * @param {number} distance - Distancia en píxeles
+     * @returns {void}
+     */
+    teleportPlayer(distance) {
+      if (state.isDestroyed) return
+      const cx = state.playerX + PLAYER_W / 2
+      const cy = state.playerY + PLAYER_H / 2
+      const dx = state.cursorX - cx
+      const dy = state.cursorY - cy
+      const len = Math.hypot(dx, dy) || 1
+      state.playerX += (dx / len) * distance
+      state.playerY += (dy / len) * distance
+      state.playerX = Math.max(0, Math.min(ARENA_WIDTH  - PLAYER_W, state.playerX))
+      state.playerY = Math.max(220, Math.min(ARENA_HEIGHT - PLAYER_H, state.playerY))
+    },
+
+    /**
+     * @description Inflige un ataque básico amplificado por `mult` (carta
+     *              card_action_heavy_strike: golpe pesado con multiplicador de daño).
+     *              Reutiliza el daño base del ataque básico (10) escalado por mult.
+     * @param {number} mult - Multiplicador de daño (ej: 3 para Golpe Pesado)
+     * @returns {void}
+     */
+    dealBasicAttackWithMult(mult) {
+      if (state.isDestroyed || state.bossHp <= 0) return
+      applyDamageToBoss(BASIC_ATTACK_BASE_DAMAGE * mult)
+      // Visual: swing más grande sobre el jefe
+      state.swingTimer = BASIC_SWING_DURATION_MS * 1.5
+      state.swingX = ARENA_WIDTH / 2
+      state.swingY = 150
     },
 
     /**

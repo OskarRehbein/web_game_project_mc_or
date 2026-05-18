@@ -167,17 +167,32 @@ function debuffLabel(debuff) {
 let combatController = null
 
 /**
- * @description Activa una carta de Acción: aplica daño al jefe y arranca el cooldown.
- *              Disparable con click izquierdo en el slot de la hotbar o con las teclas 1-4
- *              (FR-020a).
+ * @description Activa una carta de Acción: aplica su efecto al motor y arranca el cooldown.
+ *              Despacha según el tipo de efecto declarado en cards.json:
+ *                - `damage`           → daño directo al jefe
+ *                - `damageMult`       → ataque básico amplificado (Golpe Pesado)
+ *                - `shieldDurationMs` → invulnerabilidad temporal (Escudo)
+ *                - `teleportDistance` → teletransporte hacia el cursor
+ *              Disparable con click izquierdo en el slot o con las teclas 1-4 (FR-020a).
  * @param {import('@/engine/entities/Card.js').Card} card - Carta de Acción a activar
  * @returns {void}
  */
 function activateCard(card) {
   if (!card) return
   if ((cooldowns[card.id] ?? 0) > 0) return
-  const damage = card.effect?.damage ?? 0
-  combatController?.dealDamageToBoss(damage)
+  if (!combatController) return
+
+  const fx = card.effect ?? {}
+  if (typeof fx.damage === 'number' && fx.damage > 0) {
+    combatController.dealDamageToBoss(fx.damage)
+  } else if (typeof fx.damageMult === 'number' && fx.damageMult > 0) {
+    combatController.dealBasicAttackWithMult(fx.damageMult)
+  } else if (typeof fx.shieldDurationMs === 'number' && fx.shieldDurationMs > 0) {
+    combatController.activateShield(fx.shieldDurationMs)
+  } else if (typeof fx.teleportDistance === 'number' && fx.teleportDistance > 0) {
+    combatController.teleportPlayer(fx.teleportDistance)
+  }
+
   // Arranca cuenta regresiva del cooldown
   cooldowns[card.id] = card.cooldown ?? 0
   const interval = setInterval(() => {
