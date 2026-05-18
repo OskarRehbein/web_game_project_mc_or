@@ -78,6 +78,14 @@ const BASIC_SWING_DURATION_MS = 180
 const BASIC_ATTACK_MELEE_RANGE = 110
 
 /**
+ * Semiángulo del cono melee, en radianes. El cono total abarca el doble
+ * (≈70°): suficiente para imitar un tajo horizontal de espada sin volverse
+ * un círculo completo. El golpe solo conecta si el centro del jefe cae
+ * dentro de este sector orientado hacia el cursor.
+ */
+const BASIC_ATTACK_CONE_HALF_ANGLE = Math.PI * 0.20  // ~36°
+
+/**
  * @typedef {Object} CombatOptions
  * @property {HTMLElement}              container        - Elemento DOM al que se adjunta el canvas
  * @property {Object}                   boss             - Datos del jefe desde bosses.json
@@ -249,11 +257,18 @@ export async function createCombatApp(options) {
     state.swingX = pcx + (dx / len) * (PLAYER_W / 2 + 18)
     state.swingY = pcy + (dy / len) * (PLAYER_W / 2 + 18)
 
-    // Comprobación de rango: distancia jugador ↔ centro del jefe.
+    // Comprobación de rango: el jefe debe estar dentro del cono melee
+    // (distancia ≤ alcance + radio del jefe Y ángulo dentro del sector).
     const bossCx = ARENA_WIDTH / 2
     const bossCy = 130
     const distToBoss = Math.hypot(bossCx - pcx, bossCy - pcy)
-    if (distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2) {
+    const aimAngle = Math.atan2(dy, dx)
+    const bossAngle = Math.atan2(bossCy - pcy, bossCx - pcx)
+    let angleDiff = Math.abs(aimAngle - bossAngle)
+    if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff
+    const inDist = distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2
+    const inCone = angleDiff <= BASIC_ATTACK_CONE_HALF_ANGLE
+    if (inDist && inCone) {
       applyDamageToBoss(BASIC_ATTACK_BASE_DAMAGE)
       state.swingHit = true
     } else {
@@ -405,39 +420,71 @@ export async function createCombatApp(options) {
     }
   }
 
-  // ─── Dibujo de la animación de swing del ataque básico (melee) ────────────
+  // ─── Dibujo del cono de alcance + animación de tajo (melee) ───────────────
   function drawSwing() {
     swingGfx.clear()
     rangeGfx.clear()
 
-    // Anillo de alcance melee (siempre visible mientras el jefe esté vivo)
-    // para que el jugador sepa cuándo está en rango para golpear.
-    // Se dibuja en rangeGfx (capa bajo el jefe) para que no le pase por encima.
+    // Cono de alcance melee orientado al cursor (siempre visible mientras
+    // el jefe esté vivo) para que el jugador vea hacia dónde apunta el tajo
+    // y sepa cuándo el jefe está dentro del sector para conectar el golpe.
+    // Se dibuja en rangeGfx (capa bajo el jefe) para no taparle la cara.
     if (state.bossHp > 0) {
       const pcx = state.playerX + PLAYER_W / 2
       const pcy = state.playerY + PLAYER_H / 2
+      const dx = state.cursorX - pcx
+      const dy = state.cursorY - pcy
+      const aimAngle = Math.atan2(dy, dx)
+
       const bossCx = ARENA_WIDTH / 2
       const bossCy = 130
       const distToBoss = Math.hypot(bossCx - pcx, bossCy - pcy)
-      const inRange = distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2
-      const ringColor = inRange ? 0xffd166 : 0x4a6680
-      const ringAlpha = inRange ? 0.55 : 0.18
+      let bossAngleDiff = Math.abs(aimAngle - Math.atan2(bossCy - pcy, bossCx - pcx))
+      if (bossAngleDiff > Math.PI) bossAngleDiff = Math.PI * 2 - bossAngleDiff
+      const inRange =
+        distToBoss <= BASIC_ATTACK_MELEE_RANGE + BOSS_W / 2 &&
+        bossAngleDiff <= BASIC_ATTACK_CONE_HALF_ANGLE
+
+      const coneColor = inRange ? 0xffd166 : 0x4a6680
+      const fillAlpha = inRange ? 0.18 : 0.07
+      const strokeAlpha = inRange ? 0.55 : 0.18
+      const a0 = aimAngle - BASIC_ATTACK_CONE_HALF_ANGLE
+      const a1 = aimAngle + BASIC_ATTACK_CONE_HALF_ANGLE
+      // Sector circular: vértice en el jugador, arco redondeado al frente.
+      // (Pixi cierra el path automáticamente al usar fill/stroke después de arc.)
       rangeGfx
-        .circle(pcx, pcy, BASIC_ATTACK_MELEE_RANGE)
-        .stroke({ color: ringColor, width: inRange ? 2 : 1, alpha: ringAlpha })
+        .moveTo(pcx, pcy)
+        .arc(pcx, pcy, BASIC_ATTACK_MELEE_RANGE, a0, a1)
+        .lineTo(pcx, pcy)
+        .fill({ color: coneColor, alpha: fillAlpha })
+        .stroke({ color: coneColor, width: inRange ? 2 : 1, alpha: strokeAlpha })
     }
 
     if (state.swingTimer <= 0) return
+
+    // Tajo horizontal: un arco que barre el ancho del cono de izquierda a
+    // derecha durante la animación, con punta redondeada (trazo grueso).
     const t = state.swingTimer / BASIC_SWING_DURATION_MS  // 1 → 0
-    const radius = 14 + (1 - t) * 22
-    const alpha = t
+    const progress = 1 - t                                // 0 → 1
+    const pcx = state.playerX + PLAYER_W / 2
+    const pcy = state.playerY + PLAYER_H / 2
+    const dx = state.cursorX - pcx
+    const dy = state.cursorY - pcy
+    const aimAngle = Math.atan2(dy, dx)
+    const half = BASIC_ATTACK_CONE_HALF_ANGLE
+    // El barrido cubre ~70% del cono y se desplaza durante la animación.
+    const swept = half * 1.4
+    const startA = aimAngle - half + progress * (half * 2 - swept)
+    const endA = startA + swept
+    const radius = BASIC_ATTACK_MELEE_RANGE * (0.55 + progress * 0.45)
     const color = state.swingHit ? COLORS.basicSwing : 0x99aabb
     swingGfx
-      .circle(state.swingX, state.swingY, radius)
-      .stroke({ color, width: 4, alpha })
+      .arc(pcx, pcy, radius, startA, endA)
+      .stroke({ color, width: 6, alpha: t, cap: 'round' })
+    // Estela interior más tenue para dar grosor al tajo.
     swingGfx
-      .circle(state.swingX, state.swingY, radius * 0.55)
-      .stroke({ color, width: 2, alpha: alpha * 0.7 })
+      .arc(pcx, pcy, radius * 0.82, startA, endA)
+      .stroke({ color, width: 3, alpha: t * 0.5, cap: 'round' })
   }
 
   // ─── Game loop ─────────────────────────────────────────────────────────────
