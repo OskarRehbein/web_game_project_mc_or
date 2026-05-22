@@ -1,0 +1,39 @@
+[
+  {
+    "id": "isla-playa",
+    "name": "Isla Playa",
+    "type": "regular",
+    "events": ["ev-001"]
+  },
+  {
+    "id": "isla-bosque",
+    "name": "Isla Bosque",
+    "type": "regular",
+    "events": ["ev-002"]
+  },
+  {
+    "id": "isla-desertica",
+    "name": "Isla Desértica",
+    "type": "regular",
+    "events": ["ev-003"]
+  },
+  {
+    "id": "isla-tienda",
+    "name": "Isla Tienda",
+    "type": "shop",
+    "events": ["shop-001"]
+  },
+  {
+    "id": "isla-jefe",
+    "name": "Isla del Capitán Cangrejo",
+    "type": "boss",
+    "bossId": "crab_captain",
+    "events": ["ev-boss-001"]
+  },
+  {
+    "id": "fathoms-end",
+    "name": "Fathom's End",
+    "type": "final",
+    "events": []
+  }
+]

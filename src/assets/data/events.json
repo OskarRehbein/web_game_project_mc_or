@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ev-001",
+    "title": "Encuentro en la Playa",
+    "description": "Algo brilla entre la arena.",
+    "decisions": [
+      {
+        "text": "Buscar en la orilla",
+        "outcomes": [
+          { "id": "ev-001-o1", "weight": 70, "type": "loot", "goldMin": 5, "goldMax": 12 },
+          { "id": "ev-001-o2", "weight": 30, "type": "trap", "damage": 5 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-002",
+    "title": "Sendero en el Bosque",
+    "description": "Un anciano ofrece ayuda a cambio de una historia.",
+    "decisions": [
+      {
+        "text": "Contarle la historia",
+        "outcomes": [
+          { "id": "ev-002-o1", "weight": 100, "type": "loot", "goldMin": 3, "goldMax": 8 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-003",
+    "title": "Duna Solitaria",
+    "description": "La arena parece moverse con vida.",
+    "decisions": [
+      {
+        "text": "Investigar la duna",
+        "outcomes": [
+          { "id": "ev-003-o1", "weight": 60, "type": "loot", "goldMin": 6, "goldMax": 15 },
+          { "id": "ev-003-o2", "weight": 40, "type": "debuff", "debuff": { "type": "speed", "magnitude": 0.2 } }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-boss-001",
+    "title": "Antes del Capitán",
+    "description": "Sientes la presencia del jefe en la costa.",
+    "decisions": [
+      {
+        "text": "Enfrentarlo",
+        "outcomes": [
+          { "id": "ev-boss-001-o1", "weight": 100, "type": "boss", "bossId": "crab_captain" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "shop-001",
+    "title": "Mercado Flotante",
+    "description": "Vendedores ofrecen objetos a cambio de oro.",
+    "decisions": []
+  }
+]

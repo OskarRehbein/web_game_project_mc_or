@@ -25,6 +25,8 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Island } from '@/engine/entities/Island.js'
 import { Ship } from '@/engine/entities/Ship.js'
+import islandsData from '@/assets/data/islands.json'
+import { generateIslandOptions } from '@/engine/simulation/MapGenerator.js'
 import EventWindow from '@/components/EventWindow.vue'
 
 // Referencias
@@ -68,37 +70,91 @@ let animationFrameId = null
 /**
  * Inicializa las islas con posiciones fijas
  */
+function mapVisualType(island) {
+  // Map semantic island ids/names to visual types expected by Island.getColor()
+  const id = (island.id || '').toLowerCase()
+  if (id.includes('bosque')) return 'forest'
+  if (id.includes('desert') || id.includes('desertica')) return 'desert'
+  if (id.includes('playa')) return 'forest'
+  if (id.includes('rock')) return 'rock'
+  if (island.type === 'shop') return 'rock'
+  if (island.type === 'boss') return 'rock'
+  return 'forest'
+}
+
 function initializeIslands() {
-  islands = [
-    new Island({
-      id: 1,
-      name: 'Isla Verde',
-      type: 'forest',
-      x: 200,
-      y: 150,
-      radius: 25,
-      interactionRadius: 80,
-    }),
-    new Island({
-      id: 2,
-      name: 'Isla Gris',
-      type: 'rock',
-      x: 600,
-      y: 200,
-      radius: 25,
-      interactionRadius: 80,
-    }),
-    new Island({
-      id: 3,
-      name: 'Isla Amarilla',
-      type: 'desert',
-      x: 400,
-      y: 450,
-      radius: 25,
-      interactionRadius: 80,
-    }),
-  ]
-  console.warn('Islas inicializadas:', islands)
+  // choose three island options from the bank
+  const options = generateIslandOptions(islandsData, 3, null, Math.random)
+
+  // helper: distance between two points
+  function dist(a, b) {
+    const dx = a.x - b.x
+    const dy = a.y - b.y
+    return Math.sqrt(dx * dx + dy * dy)
+  }
+
+  const center = { x: canvasWidth / 2, y: canvasHeight / 2 }
+  const margin = 60
+  const minDistanceFromShip = 160 // px minimal distance from ship center
+  const minDistanceBetweenIslands = 120
+
+  const placed = []
+
+  // generate random positions for each chosen island
+  for (let i = 0; i < options.length; i++) {
+    const opt = options[i]
+    let attempt = 0
+    let pos = { x: margin + Math.random() * (canvasWidth - margin * 2), y: margin + Math.random() * (canvasHeight - margin * 2) }
+
+    while (attempt < 200) {
+      // sample position
+      // Restrict horizontal sampling to avoid first and last quarter of the canvas
+      const allowedXMin = Math.max(margin, Math.floor(canvasWidth * 0.25))
+      const allowedXMax = Math.min(canvasWidth - margin, Math.ceil(canvasWidth * 0.75))
+      const sampleX = allowedXMin + Math.random() * Math.max(0, allowedXMax - allowedXMin)
+      const sampleY = margin + Math.random() * Math.max(0, canvasHeight - margin * 2)
+      pos = { x: sampleX, y: sampleY }
+
+      // avoid proximity to ship center
+      if (dist(pos, center) < minDistanceFromShip) {
+        attempt++
+        continue
+      }
+
+      // avoid overlapping previously placed islands
+      let ok = true
+      for (const p of placed) {
+        if (dist(pos, p) < minDistanceBetweenIslands) {
+          ok = false
+          break
+        }
+      }
+
+      if (!ok) {
+        attempt++
+        continue
+      }
+
+      break
+    }
+
+    placed.push(pos)
+
+    const visualType = mapVisualType(opt)
+    islands.push(
+      new Island({
+        id: opt.id,
+        name: opt.name,
+        type: visualType,
+        x: pos.x,
+        y: pos.y,
+        radius: 25,
+        interactionRadius: 80,
+      })
+    )
+  }
+
+  console.warn('Islas inicializadas (desde assets):', islands)
 }
 
 /**
@@ -240,6 +296,25 @@ function drawMap() {
     ctx.lineWidth = 2
     ctx.stroke()
   })
+
+  // Dibujar nombres de islas debajo de cada punto
+  if (islands.length > 0) {
+    ctx.font = '14px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'top'
+    for (const island of islands) {
+      const labelY = island.y + island.radius + 6
+
+      // Outline for readability
+      ctx.lineWidth = 3
+      ctx.strokeStyle = 'rgba(0,0,0,0.6)'
+      ctx.strokeText(island.name, island.x, labelY)
+
+      // Fill text
+      ctx.fillStyle = 'rgba(232, 215, 125, 1)'
+      ctx.fillText(island.name, island.x, labelY)
+    }
+  }
 
   // Dibujar barco
   if (ship) {
