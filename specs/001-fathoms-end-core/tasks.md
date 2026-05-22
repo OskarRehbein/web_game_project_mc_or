@@ -89,8 +89,8 @@
 
 ### Tests — User Story 2
 
-- [ ] T032 [P] [US2] Escribir tests unitarios para `MapGenerator` (genera exactamente 3 opciones, no repite isla anterior, samplea con reemplazo cuando el banco se agota) en `tests/unit/engine/MapGenerator.test.js`
-- [ ] T033 [P] [US2] Escribir tests unitarios para `EventResolver` (distribución de pesos suma 100, roll=0 → primer outcome, roll=99.9 → último outcome, fallback por flotantes) en `tests/unit/engine/EventResolver.test.js`
+- [X] T032 [P] [US2] Escribir tests unitarios para `MapGenerator` (genera exactamente 3 opciones, no repite isla anterior, samplea con reemplazo cuando el banco se agota) en `tests/unit/engine/MapGenerator.test.js`
+- [X] T033 [P] [US2] Escribir tests unitarios para `EventResolver` (distribución de pesos suma 100, roll=0 → primer outcome, roll=99.9 → último outcome, fallback por flotantes) en `tests/unit/engine/EventResolver.test.js`
 
 ### Implementación — User Story 2
 
