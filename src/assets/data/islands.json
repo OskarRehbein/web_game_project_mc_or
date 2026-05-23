@@ -3,19 +3,19 @@
     "id": "isla-playa",
     "name": "Isla Playa",
     "type": "regular",
-    "events": ["ev-001"]
+    "events": ["ev-001", "ev-002", "ev-003"]
   },
   {
     "id": "isla-bosque",
     "name": "Isla Bosque",
     "type": "regular",
-    "events": ["ev-002"]
+    "events": ["ev-forest-001", "ev-forest-001-followup", "ev-forest-002", "ev-forest-002-o1-followup", "ev-forest-002-o2-followup", "ev-forest-002-o3-followup", "ev-forest-002-o4-followup", "ev-forest-002-o5-followup", "ev-forest-003", "ev-forest-003-o1-followup", "ev-forest-003-o2-followup"]
   },
   {
     "id": "isla-desertica",
     "name": "Isla Desértica",
     "type": "regular",
-    "events": ["ev-003"]
+    "events": ["ev-desert-001", "ev-desert-001-followup", "ev-desert-002", "ev-desert-003"]
   },
   {
     "id": "isla-tienda",

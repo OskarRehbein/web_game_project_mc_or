@@ -1,62 +1,565 @@
 [
   {
     "id": "ev-001",
-    "title": "Encuentro en la Playa",
-    "description": "Algo brilla entre la arena.",
+    "title": "Descenso en la costa",
+    "description": "Al prepararte para explorar, te encuentras con un Pirata defendiendo un tesoro, te exige que le entregues tus pertenencias.",
+    "biome": "beach",
+    "allowedIslandIds": ["isla-playa"],
     "decisions": [
       {
-        "text": "Buscar en la orilla",
+        "text": "Luchar por el tesoro",
         "outcomes": [
-          { "id": "ev-001-o1", "weight": 70, "type": "loot", "goldMin": 5, "goldMax": 12 },
-          { "id": "ev-001-o2", "weight": 30, "type": "trap", "damage": 5 }
+          {
+            "id": "ev-001-o1",
+            "weight": 100,
+            "type": "combat",
+            "hpLoss": 30,
+            "lootGain": 25
+          }
+        ]
+      },
+      {
+        "text": "Acceder a sus demandas",
+        "outcomes": [
+          {
+            "id": "ev-001-o2",
+            "weight": 100,
+            "type": "loot_loss",
+            "lootLoss": 10,
+            "lootLossMode": "up_to_available"
+          }
         ]
       }
     ]
   },
   {
     "id": "ev-002",
-    "title": "Sendero en el Bosque",
-    "description": "Un anciano ofrece ayuda a cambio de una historia.",
+    "title": "Tesoro a la vista!",
+    "description": "Puedes ver el claro brillo de un cofre del tesoro.",
+    "biome": "beach",
+    "allowedIslandIds": ["isla-playa"],
     "decisions": [
       {
-        "text": "Contarle la historia",
+        "text": "Recoger el tesoro y celebrar",
         "outcomes": [
-          { "id": "ev-002-o1", "weight": 100, "type": "loot", "goldMin": 3, "goldMax": 8 }
+          {
+            "id": "ev-002-o1",
+            "weight": 100,
+            "type": "loot",
+            "lootGain": 10
+          }
         ]
       }
     ]
   },
   {
     "id": "ev-003",
-    "title": "Duna Solitaria",
-    "description": "La arena parece moverse con vida.",
+    "title": "Rocas en la costa",
+    "description": "Cuando te estas preparando para embarcar en la isla, puedes ver rocas en tu camino",
+    "biome": "beach",
+    "allowedIslandIds": ["isla-playa"],
     "decisions": [
       {
-        "text": "Investigar la duna",
+        "text": "Prepararte para el impacto",
         "outcomes": [
-          { "id": "ev-003-o1", "weight": 60, "type": "loot", "goldMin": 6, "goldMax": 15 },
-          { "id": "ev-003-o2", "weight": 40, "type": "debuff", "debuff": { "type": "speed", "magnitude": 0.2 } }
+          {
+            "id": "ev-003-o1",
+            "weight": 100,
+            "type": "subevent",
+            "lootLoss": 5,
+            "nextEventId": "ev-003-followup"
+          }
+        ]
+      },
+      {
+        "text": "Proteger tus tesoros",
+        "outcomes": [
+          {
+            "id": "ev-003-o2",
+            "weight": 100,
+            "type": "subevent",
+            "hpLoss": 5,
+            "nextEventId": "ev-003-followup"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-003-followup",
+    "title": "Rocas en la costa",
+    "description": "Tras el percance, te decides en explorar la isla, desafortunadamente, no hay nada de valor en la isla.",
+    "biome": "beach",
+    "allowedIslandIds": ["isla-playa"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Volver al barco",
+        "outcomes": [
+          {
+            "id": "ev-003-followup-o1",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-desert-001",
+    "title": "Fuerzas mayores",
+    "description": "Al entrar en la isla desértica y estar bajo de recursos, decides rezar a Taln, Señor de las aguas.",
+    "biome": "desert",
+    "allowedIslandIds": ["isla-desertica"],
+    "decisions": [
+      {
+        "text": "Ofrecer sangre",
+        "outcomes": [
+          {
+            "id": "ev-desert-001-o1",
+            "weight": 100,
+            "type": "subevent",
+            "hpLoss": 10,
+            "nextEventId": "ev-desert-001-followup"
+          }
+        ]
+      },
+      {
+        "text": "Ofrecer tesoro",
+        "outcomes": [
+          {
+            "id": "ev-desert-001-o2",
+            "weight": 100,
+            "type": "subevent",
+            "lootLoss": 10,
+            "lootLossMode": "up_to_available",
+            "nextEventId": "ev-desert-001-followup"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-desert-001-followup",
+    "title": "Fuerzas mayores",
+    "description": "Tras hacer la ofrenda, las olas dejan un artefacto en la orilla.",
+    "biome": "desert",
+    "allowedIslandIds": ["isla-desertica"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Recoger objeto",
+        "outcomes": [
+          {
+            "id": "ev-desert-001-followup-o1",
+            "weight": 100,
+            "type": "loot",
+            "lootGain": 0,
+            "itemId": "amuleto-del-inquebrantable",
+            "itemName": "Amuleto del inquebrantable"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-desert-002",
+    "title": "La estatua del desierto",
+    "description": "En medio de la arena aparece una estatua con un recipiente. Si llevas el Amuleto del inquebrantable, podrías dejarlo aquí para recibir algo a cambio.",
+    "biome": "desert",
+    "allowedIslandIds": ["isla-desertica"],
+    "decisions": [
+      {
+        "text": "Dejar el amuleto en el recipiente",
+        "outcomes": [
+          {
+            "id": "ev-desert-002-o1",
+            "weight": 100,
+            "type": "loot",
+            "lootGain": 0,
+            "itemId": "espada-del-oasis",
+            "itemName": "Espada del oasis",
+            "requiredItemId": "amuleto-del-inquebrantable"
+          }
+        ]
+      },
+      {
+        "text": "Marcharse",
+        "outcomes": [
+          {
+            "id": "ev-desert-002-o2",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-desert-003",
+    "title": "Es un desierto",
+    "description": "No hay nada que recalcar en esta isla.",
+    "biome": "desert",
+    "allowedIslandIds": ["isla-desertica"],
+    "decisions": [
+      {
+        "text": "Volver al barco",
+        "outcomes": [
+          {
+            "id": "ev-desert-003-o1",
+            "weight": 100,
+            "type": "end"
+          }
         ]
       }
     ]
   },
   {
     "id": "ev-boss-001",
-    "title": "Antes del Capitán",
-    "description": "Sientes la presencia del jefe en la costa.",
+    "title": "Presagios desafortunados",
+    "description": "Al acercarte a la isla de famoso capitan cangrejo, te preparas para una batalla inevitable",
+    "biome": "boss",
+    "allowedIslandIds": ["isla-jefe"],
     "decisions": [
       {
-        "text": "Enfrentarlo",
+        "text": "Prepararte para la batalle",
         "outcomes": [
-          { "id": "ev-boss-001-o1", "weight": 100, "type": "boss", "bossId": "crab_captain" }
+          {
+            "id": "ev-boss-001-o1",
+            "weight": 100,
+            "type": "boss",
+            "bossId": "crab_captain"
+          }
         ]
       }
     ]
   },
   {
     "id": "shop-001",
-    "title": "Mercado Flotante",
-    "description": "Vendedores ofrecen objetos a cambio de oro.",
-    "decisions": []
+    "title": "Vendero no ambulante",
+    "description": "Al querer investigar la isla te encuentras con un unico vendedor, te cuestionas las desiciones que pudieron llevarlo a querer abrir su tienda en una isla desertica.",
+    "biome": "shop",
+    "allowedIslandIds": ["isla-tienda"],
+    "decisions": [
+      {
+        "text": "Revisar objetos a la venta",
+        "outcomes": [
+          {
+            "id": "shop-001-o1",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      },
+      {
+        "text": "Volver al barco",
+        "outcomes": [
+          {
+            "id": "shop-001-o2",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  }
+,
+  {
+    "id": "ev-forest-001",
+    "title": "El claro con ofrendas",
+    "description": "Al dejar el bote asegurado y explorar la isla, encuentras un claro con pequeñas ofrendas y una figura tallada. Hay un susurro en el viento.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "decisions": [
+      {
+        "text": "Tomar figura",
+        "outcomes": [
+          {
+            "id": "ev-forest-001-o1",
+            "weight": 100,
+            "type": "end",
+            "hpGain": 10
+          }
+        ]
+      },
+      {
+        "text": "Tomar ofrenda",
+        "outcomes": [
+          {
+            "id": "ev-forest-001-o2",
+            "weight": 100,
+            "type": "loot",
+            "lootGain": 15
+          }
+        ]
+      },
+      {
+        "text": "Rezar y dejar ofrenda",
+        "outcomes": [
+          {
+            "id": "ev-forest-001-o3",
+            "weight": 100,
+            "type": "subevent",
+            "lootLoss": 20,
+            "lootLossMode": "up_to_available",
+            "nextEventId": "ev-forest-001-followup"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-001-followup",
+    "title": "Bendición del espíritu",
+    "description": "Sientes la bendición del espíritu del área. Una calma cálida recorre tu cuerpo.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Aceptar la bendición",
+        "outcomes": [
+          {
+            "id": "ev-forest-001-followup-o1",
+            "weight": 100,
+            "type": "end",
+            "maxHpGain": 20
+          }
+        ]
+      }
+    ]
+  }
+  ,
+  {
+    "id": "ev-forest-002",
+    "title": "Sendero que se bifurca",
+    "description": "Después de bajar del barco y asegurar la bodega, exploras y encuentras un cruce: un sendero oscuro entre raíces y uno luminoso flanqueado por flores; a la distancia se percibe olor a miel.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "decisions": [
+      {
+        "text": "Tomar el sendero oscuro",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o1",
+            "weight": 70,
+            "type": "subevent",
+            "hpLoss": 18,
+            "nextEventId": "ev-forest-002-o1-followup"
+          },
+          {
+            "id": "ev-forest-002-o2",
+            "weight": 30,
+            "type": "subevent",
+            "lootGain": 12,
+            "nextEventId": "ev-forest-002-o2-followup"
+          }
+        ]
+      },
+      {
+        "text": "Tomar el sendero luminoso",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o3",
+            "weight": 80,
+            "type": "subevent",
+            "hpGain": 8,
+            "nextEventId": "ev-forest-002-o3-followup"
+          },
+          {
+            "id": "ev-forest-002-o4",
+            "weight": 20,
+            "type": "subevent",
+            "nextEventId": "ev-forest-002-o4-followup"
+          }
+        ]
+      },
+      {
+        "text": "Marcar el cruce y volver al barco",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o5",
+            "weight": 100,
+            "type": "subevent",
+            "setFlag": "marked_fork",
+            "nextEventId": "ev-forest-002-o5-followup"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-002-o1-followup",
+    "title": "Choque con un sabueso",
+    "description": "Al tomar el sendero oscuro, un sabueso del bosque salta entre las raíces y se lanza contra ti. Tras un breve forcejeo, logras repelerlo.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Seguir",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o1-followup-end",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-002-o2-followup",
+    "title": "Hallazgo entre la maleza",
+    "description": "Entre las raíces encuentras un pequeño cofre escondido; su contenido te hace más rico.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Volver al claro",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o2-followup-end",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-002-o3-followup",
+    "title": "Sendero de paz",
+    "description": "El aire perfumado y la luz entre los árboles te calman; recuperas fuerzas.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Seguir explorando",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o3-followup-end",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-002-o4-followup",
+    "title": "Nada fuera de lo común",
+    "description": "El sendero luminoso sólo te deja un recuerdo tranquilo; no obtienes beneficio tangible.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Regresar al barco",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o4-followup-end",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-002-o5-followup",
+    "title": "Cruce marcado",
+    "description": "Marcas el cruce con una señal discreta y vuelves al barco. Podrás reconocerlo si regresas.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Volver al barco",
+        "outcomes": [
+          {
+            "id": "ev-forest-002-o5-followup-end",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
+  }
+  ,
+  {
+    "id": "ev-forest-003",
+    "title": "Viejo árbol parlante",
+    "description": "Tras dejar el barco y adentrarte un poco, te encuentras con un árbol robusto, decides qué hacer",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "decisions": [
+      {
+        "text": "Cortar una rama",
+        "outcomes": [
+          {
+            "id": "ev-forest-003-o1",
+            "weight": 100,
+            "type": "subevent",
+            "lootGain": 5,
+            "nextEventId": "ev-forest-003-o1-followup"
+          }
+        ]
+      },
+      {
+        "text": "Volver al barco",
+        "outcomes": [
+          {
+            "id": "ev-forest-003-o2",
+            "weight": 100,
+            "type": "subevent",
+            "nextEventId": "ev-forest-003-o2-followup"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-003-o1-followup",
+    "title": "Rama tomada",
+    "description": "Cortas una rama resistente y la guardas en el bote. Material útil para más tarde.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Guardar la rama y volver",
+        "outcomes": [
+          {
+            "id": "ev-forest-003-o1-followup-end",
+            "weight": 100,
+            "type": "loot",
+            "lootGain": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-forest-003-o2-followup",
+    "title": "Regresar al barco",
+    "description": "Decides no tocar el árbol y regresas al barco sin más incidentes.",
+    "biome": "forest",
+    "allowedIslandIds": ["isla-bosque"],
+    "isContinuation": true,
+    "decisions": [
+      {
+        "text": "Subir al bote",
+        "outcomes": [
+          {
+            "id": "ev-forest-003-o2-followup-end",
+            "weight": 100,
+            "type": "end"
+          }
+        ]
+      }
+    ]
   }
 ]
