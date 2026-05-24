@@ -23,10 +23,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { Island } from '@/engine/entities/Island.js'
 import { Ship } from '@/engine/entities/Ship.js'
 import islandsData from '@/assets/data/islands.json'
 import eventsData from '@/assets/data/events.json'
+import bossesData from '@/assets/data/bosses.json'
 import { generateIslandOptions } from '@/engine/simulation/MapGenerator.js'
 import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
 import EventWindow from '@/components/EventWindow.vue'
@@ -34,9 +36,11 @@ import { useGameStore } from '@/stores/gameStore.js'
 
 // Referencias
 const mapCanvas = ref(null)
+const router = useRouter()
 const gameStore = useGameStore()
 
 const eventById = new Map(eventsData.map((event) => [event.id, event]))
+const bossById = new Map(bossesData.map((boss) => [boss.id, boss]))
 
 // Estado de eventos
 const showEventWindow = ref(false)
@@ -271,6 +275,21 @@ function endCurrentEvent() {
   resetExplorationMap()
 }
 
+function goToCombat(bossId) {
+  const boss = bossById.get(bossId) ?? bossesData[0] ?? null
+
+  if (!boss) {
+    return
+  }
+
+  showResultWindow.value = false
+  showEventWindow.value = false
+  activeEvent = null
+  gameStore.currentIsland = currentIslandInRange
+  gameStore.enterCombat(boss)
+  router.push({ name: 'combat' })
+}
+
 /**
  * Maneja la presión de teclas
  */
@@ -339,6 +358,11 @@ function handleSelectOption(optionIndex) {
 
   const decision = currentEvent.decisions[optionIndex]
   const outcome = resolveOutcome(decision.outcomes || [])
+
+  if (outcome?.type === 'boss') {
+    goToCombat(outcome.bossId)
+    return
+  }
 
   if (outcome?.type === 'end' && !outcome?.nextEventId) {
     endCurrentEvent()

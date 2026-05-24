@@ -2,8 +2,7 @@
  * MapGenerator — island option selection for exploration flow.
  *
  * Rules covered here:
- *  - Always returns the requested number of options when the pool has enough
- *    candidates.
+ *  - Returns up to two options from the eligible exploration pool.
  *  - Never repeats the immediately previous island when an alternative exists.
  *  - Resamples with replacement once the available pool is exhausted.
  *  - Pure JS module: no Vue, Pinia, or PixiJS imports.
@@ -24,9 +23,8 @@ function pickFromPool(pool, rng) {
 /**
  * Generates a set of island options from a bank of islands.
  *
- * The function samples without replacement until the filtered pool is
- * exhausted, then it replenishes the pool and keeps sampling with replacement.
- * The immediately previous island is excluded whenever an alternative exists.
+ * The function samples from regular and shop islands, excluding the
+ * immediately previous island whenever an alternative exists.
  *
  * @param {Array<{ id: string } & object>} bank
  * @param {number} count
@@ -34,36 +32,36 @@ function pickFromPool(pool, rng) {
  * @param {() => number} [rng=Math.random]
  * @returns {Array<{ id: string } & object>}
  */
-export function generateIslandOptions(bank, count = 3, previousIslandId = null, rng = Math.random) {
+export function generateIslandOptions(bank, count = 2, previousIslandId = null, rng = Math.random) {
   if (!Array.isArray(bank) || count <= 0) {
     return []
   }
 
-  const filteredPool = bank.filter((island) => island?.id !== previousIslandId)
+  // Only consider exploration islands: regular and shop (plus legacy regular name)
+  const filteredPool = bank.filter((island) =>
+    island &&
+    (island.type === 'regular' || island.type === 'shop') &&
+    island.id !== previousIslandId,
+  )
 
   if (filteredPool.length === 0) {
     return []
   }
 
-  const options = []
-  let available = [...filteredPool]
+  // Enforce exactly two options max (but return fewer when pool smaller)
+  const MAX_OPTIONS = 2
+  const uniqueCount = Math.min(MAX_OPTIONS, filteredPool.length)
 
-  while (options.length < count) {
-    if (available.length === 0) {
-      available = [...filteredPool]
-    }
-
-    const selected = pickFromPool(available, rng)
-    options.push(selected)
-
-    if (available.length > 1) {
-      available = available.filter((island) => island !== selected)
-    } else {
-      available = []
-    }
+  // Simple Fisher-Yates shuffle using provided rng to randomize selection
+  const pool = [...filteredPool]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    const tmp = pool[i]
+    pool[i] = pool[j]
+    pool[j] = tmp
   }
 
-  return options
+  return pool.slice(0, uniqueCount)
 }
 
 /**
