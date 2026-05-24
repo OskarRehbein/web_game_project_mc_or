@@ -3,10 +3,11 @@
  */
 
 export class Island {
-  constructor({ id, name, type, x, y, radius = 20, interactionRadius = 80 }) {
+  constructor({ id, name, type, events = [], x, y, radius = 20, interactionRadius = 80 }) {
     this.id = id
     this.name = name
     this.type = type // 'forest' (verde), 'desert' (amarilla), 'rock' (gris)
+    this.events = events
     this.x = x // posición x en píxeles
     this.y = y // posición y en píxeles
     this.radius = radius // radio del círculo que representa la isla

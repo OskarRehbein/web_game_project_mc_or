@@ -34,6 +34,6 @@
     "id": "fathoms-end",
     "name": "Fathom's End",
     "type": "final",
-    "events": []
+    "events": ["ev-f-end-001"]
   }
 ]

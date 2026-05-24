@@ -222,13 +222,32 @@
     "allowedIslandIds": ["isla-jefe"],
     "decisions": [
       {
-        "text": "Prepararte para la batalle",
+        "text": "Prepararte para la batalla",
         "outcomes": [
           {
             "id": "ev-boss-001-o1",
             "weight": 100,
             "type": "boss",
             "bossId": "crab_captain"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ev-f-end-001",
+    "title": "El final se acerca",
+    "description": "Puedes ver tu destino. Se acerca el final...",
+    "biome": "boss",
+    "allowedIslandIds": ["fathoms-end"],
+    "decisions": [
+      {
+        "text": "Aceptar tu destino",
+        "outcomes": [
+          {
+            "id": "ev-f-end-001-o1",
+            "weight": 100,
+            "type": "end"
           }
         ]
       }

@@ -11,7 +11,7 @@
       v-if="showEventWindow"
       :title="eventData.title"
       :content="eventData.content"
-      :options="['Opción 1', 'Opción 2', 'Opción 3']"
+      :options="eventData.options"
       :show-result="showResultWindow"
       :result-title="resultData.title"
       :result-content="resultData.content"
@@ -26,17 +26,24 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Island } from '@/engine/entities/Island.js'
 import { Ship } from '@/engine/entities/Ship.js'
 import islandsData from '@/assets/data/islands.json'
+import eventsData from '@/assets/data/events.json'
 import { generateIslandOptions } from '@/engine/simulation/MapGenerator.js'
+import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
 import EventWindow from '@/components/EventWindow.vue'
+import { useGameStore } from '@/stores/gameStore.js'
 
 // Referencias
 const mapCanvas = ref(null)
+const gameStore = useGameStore()
+
+const eventById = new Map(eventsData.map((event) => [event.id, event]))
 
 // Estado de eventos
 const showEventWindow = ref(false)
 const eventData = ref({
   title: 'Evento 1',
   content: 'Párrafo de prueba',
+  options: [],
 })
 
 // Estado de ventana de resultado
@@ -63,8 +70,9 @@ let keysPressed = {
 
 // Rastrear isla actual en rango de interacción
 let currentIslandInRange = null
+let activeEvent = null
 
-const SHIP_SPEED = 1.3 // píxeles por frame
+const SHIP_SPEED = 3 //dejar en 1.3 // píxeles por frame
 let animationFrameId = null
 
 /**
@@ -146,6 +154,7 @@ function initializeIslands() {
         id: opt.id,
         name: opt.name,
         type: visualType,
+        events: opt.events || [],
         x: pos.x,
         y: pos.y,
         radius: 25,
@@ -167,6 +176,99 @@ function initializeShip() {
     radius: 15,
   })
   console.warn('Barco inicializado:', ship)
+}
+
+function resetExplorationMap() {
+  islands = []
+  currentIslandInRange = null
+  activeEvent = null
+  keysPressed = {
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+    ' ': false,
+  }
+
+  initializeIslands()
+  initializeShip()
+  drawMap()
+}
+
+function getEventForIsland(island) {
+  if (!island?.events?.length) {
+    return null
+  }
+
+  for (const eventId of island.events) {
+    const event = eventById.get(eventId)
+
+    if (event && !event.isContinuation) {
+      return event
+    }
+  }
+
+  return null
+}
+
+function describeOutcome(outcome) {
+  const parts = []
+
+  if (typeof outcome?.hpGain === 'number' && outcome.hpGain > 0) {
+    parts.push(`+${outcome.hpGain} de vida`)
+  }
+
+  if (typeof outcome?.maxHpGain === 'number' && outcome.maxHpGain > 0) {
+    parts.push(`+${outcome.maxHpGain} de vida máxima`)
+  }
+
+  if (typeof outcome?.lootGain === 'number' && outcome.lootGain > 0) {
+    parts.push(`+${outcome.lootGain} de loot`)
+  }
+
+  if (typeof outcome?.lootLoss === 'number' && outcome.lootLoss > 0) {
+    parts.push(`-${outcome.lootLoss} de loot`)
+  }
+
+  if (outcome?.itemName) {
+    parts.push(`Objeto: ${outcome.itemName}`)
+  }
+
+  if (outcome?.setFlag) {
+    parts.push(`Marca: ${outcome.setFlag}`)
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : 'No ocurre nada destacado.'
+}
+
+function buildResultData(decision, outcome) {
+  const followupEvent = outcome?.nextEventId ? eventById.get(outcome.nextEventId) : null
+
+  if (followupEvent) {
+    return {
+      title: followupEvent.title,
+      content: followupEvent.description,
+    }
+  }
+
+  return {
+    title: decision.text,
+    content: describeOutcome(outcome),
+  }
+}
+
+function endCurrentEvent() {
+  showResultWindow.value = false
+  showEventWindow.value = false
+  eventData.value.options = []
+  resultData.value = {
+    title: 'Resultado',
+    content: 'Placeholder',
+  }
+  activeEvent = null
+  gameStore.currentIsland = null
+  gameStore.setCurrentEvent(null)
+  resetExplorationMap()
 }
 
 /**
@@ -200,9 +302,27 @@ function handleKeyUp(event) {
 function handleInteraction() {
   if (currentIslandInRange) {
     console.warn(`Interactuando con: ${currentIslandInRange.name}`)
+    const selectedEvent = getEventForIsland(currentIslandInRange)
+
+    if (!selectedEvent) {
+      showEventWindow.value = true
+      showResultWindow.value = false
+      eventData.value.title = currentIslandInRange.name
+      eventData.value.content = `Has llegado a ${currentIslandInRange.name}. Algo sucede...`
+      eventData.value.options = ['Volver al barco']
+      activeEvent = null
+      gameStore.setCurrentEvent(null)
+      return
+    }
+
+    activeEvent = selectedEvent
+    gameStore.currentIsland = currentIslandInRange
+    gameStore.setCurrentEvent(selectedEvent)
     showEventWindow.value = true
-    eventData.value.title = currentIslandInRange.name
-    eventData.value.content = `Has llegado a ${currentIslandInRange.name}. Algo sucede...`
+    showResultWindow.value = false
+    eventData.value.title = selectedEvent.title
+    eventData.value.content = selectedEvent.description
+    eventData.value.options = (selectedEvent.decisions || []).map((decision) => decision.text)
   }
 }
 
@@ -211,17 +331,30 @@ function handleInteraction() {
  */
 function handleSelectOption(optionIndex) {
   console.warn(`Opción seleccionada: ${optionIndex + 1}`)
+  const currentEvent = activeEvent
+
+  if (!currentEvent?.decisions?.[optionIndex]) {
+    return
+  }
+
+  const decision = currentEvent.decisions[optionIndex]
+  const outcome = resolveOutcome(decision.outcomes || [])
+
+  if (outcome?.type === 'end' && !outcome?.nextEventId) {
+    endCurrentEvent()
+    return
+  }
+
   showResultWindow.value = true
-  resultData.value.title = 'Resultado'
-  resultData.value.content = 'Placeholder'
+  showEventWindow.value = true
+  resultData.value = buildResultData(decision, outcome)
 }
 
 /**
  * Cierra la ventana de resultado
  */
 function handleCloseResult() {
-  showResultWindow.value = false
-  showEventWindow.value = false // Cierra también la ventana de evento
+  endCurrentEvent()
 }
 
 /**
