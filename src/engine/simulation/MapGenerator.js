@@ -65,6 +65,16 @@ export function generateIslandOptions(bank, count = 2, previousIslandId = null, 
 }
 
 /**
+ * Generates the boss gate option set.
+ *
+ * The current gameflow only needs a single boss island option, so this helper
+ * returns one matching boss island when available.
+ *
+ * @param {Array<{ id: string } & object>} bossBank
+ * @param {Array<string>} [defeatedBossIds=[]]
+ * @returns {Array<{ id: string } & object>}
+ */
+/**
  * Marks an island as completed while keeping the rest of its data intact.
  *
  * @param {{ isCompleted?: boolean } & object} island

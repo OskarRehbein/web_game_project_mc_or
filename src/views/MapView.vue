@@ -217,15 +217,16 @@ function getEventForIsland(island) {
     return null
   }
 
-  for (const eventId of island.events) {
-    const event = eventById.get(eventId)
+  const eligibleEvents = island.events
+    .map((eventId) => eventById.get(eventId))
+    .filter((event) => event && !event.isContinuation)
 
-    if (event && !event.isContinuation) {
-      return event
-    }
+  if (eligibleEvents.length === 0) {
+    return null
   }
 
-  return null
+  const selectedIndex = Math.floor(Math.random() * eligibleEvents.length)
+  return eligibleEvents[selectedIndex]
 }
 
 function describeOutcome(outcome) {
