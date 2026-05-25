@@ -15,8 +15,11 @@
       :show-result="showResultWindow"
       :result-title="resultData.title"
       :result-content="resultData.content"
+      :is-shop-mode="isShopMode"
+      :shop-catalog="shopCatalog"
       @select-option="handleSelectOption"
       @close-result="handleCloseResult"
+      @buy="handleShopBuy"
     />
   </main>
 </template>
@@ -29,15 +32,21 @@ import { Ship } from '@/engine/entities/Ship.js'
 import islandsData from '@/assets/data/islands.json'
 import eventsData from '@/assets/data/events.json'
 import bossesData from '@/assets/data/bosses.json'
+import cardsData from '@/assets/data/cards.json'
 import { generateIslandOptions } from '@/engine/simulation/MapGenerator.js'
 import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
+import { generateShopCatalog } from '@/engine/simulation/ShopSystem.js'
 import EventWindow from '@/components/EventWindow.vue'
 import { useGameStore } from '@/stores/gameStore.js'
+import { usePlayerStore } from '@/stores/playerStore.js'
+import { useDeckStore } from '@/stores/deckStore.js'
 
 // Referencias
 const mapCanvas = ref(null)
 const router = useRouter()
 const gameStore = useGameStore()
+const playerStore = usePlayerStore()
+const deckStore = useDeckStore()
 
 const eventById = new Map(eventsData.map((event) => [event.id, event]))
 const bossById = new Map(bossesData.map((boss) => [boss.id, boss]))
@@ -56,6 +65,10 @@ const resultData = ref({
   title: 'Resultado',
   content: 'Placeholder',
 })
+
+// Estado de tienda
+const isShopMode = ref(false)
+const shopCatalog = ref([])
 
 // Entidades del mapa
 let islands = []
@@ -269,6 +282,8 @@ function endCurrentEvent() {
     title: 'Resultado',
     content: 'Placeholder',
   }
+  isShopMode.value = false
+  shopCatalog.value = []
   activeEvent = null
   gameStore.currentIsland = null
   gameStore.setCurrentEvent(null)
@@ -357,6 +372,14 @@ function handleSelectOption(optionIndex) {
   }
 
   const decision = currentEvent.decisions[optionIndex]
+
+  // Evento de tienda: primera opción abre el catálogo
+  if (currentEvent.biome === 'shop' && optionIndex === 0) {
+    shopCatalog.value = generateShopCatalog(cardsData, 4, Math.random)
+    isShopMode.value = true
+    return
+  }
+
   const outcome = resolveOutcome(decision.outcomes || [])
 
   if (outcome?.type === 'boss') {
@@ -372,6 +395,15 @@ function handleSelectOption(optionIndex) {
   showResultWindow.value = true
   showEventWindow.value = true
   resultData.value = buildResultData(decision, outcome)
+}
+
+/**
+ * Maneja la compra de una carta en la tienda
+ */
+function handleShopBuy(card) {
+  playerStore.spendGold(card.cost)
+  deckStore.addCard(card)
+  console.warn(`Comprado: ${card.name} por ${card.cost} oro`)
 }
 
 /**
