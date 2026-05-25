@@ -80,6 +80,23 @@ export function generateBossGateOptions(bossBank, defeatedBossIds = []) {
 }
 
 /**
+ * Generates the final gate option set.
+ *
+ * This game version unlocks the final island after defeating one boss.
+ *
+ * @param {{ id: string } & object} finalIsland
+ * @param {Array<string>} [defeatedBossIds=[]]
+ * @returns {Array<{ id: string } & object>}
+ */
+export function generateFinalGateOption(finalIsland, defeatedBossIds = []) {
+  if (!finalIsland || !Array.isArray(defeatedBossIds) || defeatedBossIds.length < 1) {
+    return []
+  }
+
+  return [finalIsland]
+}
+
+/**
  * Marks an island as completed while keeping the rest of its data intact.
  *
  * @param {{ isCompleted?: boolean } & object} island
