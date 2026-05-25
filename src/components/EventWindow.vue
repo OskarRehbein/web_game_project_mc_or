@@ -1,8 +1,34 @@
 <template>
   <div class="event-overlay">
-    <!-- Ventana de evento -->
+    <!-- Catálogo de tienda -->
     <div
-      v-if="!showResult"
+      v-if="isShopMode && !showResult"
+      class="event-window shop-window"
+    >
+      <h1 class="event-title">
+        {{ title }}
+      </h1>
+      <div class="shop-catalog">
+        <CardShopItem
+          v-for="card in shopCatalog"
+          :key="card.id"
+          :card="card"
+          @buy="$emit('buy', $event)"
+        />
+      </div>
+      <div class="result-actions">
+        <button
+          class="option-button"
+          @click="$emit('close-result')"
+        >
+          Volver al barco
+        </button>
+      </div>
+    </div>
+
+    <!-- Ventana de evento regular -->
+    <div
+      v-else-if="!isShopMode && !showResult"
       class="event-window"
     >
       <h1 class="event-title">
@@ -49,7 +75,9 @@
 </template>
 
 <script setup>
-defineEmits(['select-option', 'close-result'])
+import CardShopItem from '@/components/cards/CardShopItem.vue'
+
+defineEmits(['select-option', 'close-result', 'buy'])
 
 defineProps({
   title: {
@@ -75,6 +103,14 @@ defineProps({
   resultContent: {
     type: String,
     default: 'Placeholder',
+  },
+  isShopMode: {
+    type: Boolean,
+    default: false,
+  },
+  shopCatalog: {
+    type: Array,
+    default: () => [],
   },
 })
 </script>
@@ -163,6 +199,17 @@ defineProps({
   display: flex;
   justify-content: flex-start;
   margin-top: 20px;
+}
+
+.shop-window {
+  max-width: 720px;
+}
+
+.shop-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 </style>
