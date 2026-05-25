@@ -9,18 +9,6 @@
  */
 
 /**
- * Picks one element from a non-empty pool using the provided RNG.
- *
- * @param {Array<object>} pool
- * @param {() => number} rng
- * @returns {object}
- */
-function pickFromPool(pool, rng) {
-  const index = Math.floor(rng() * pool.length)
-  return pool[index]
-}
-
-/**
  * Generates a set of island options from a bank of islands.
  *
  * The function samples from regular and shop islands, excluding the
@@ -67,13 +55,30 @@ export function generateIslandOptions(bank, count = 2, previousIslandId = null, 
 /**
  * Generates the boss gate option set.
  *
- * The current gameflow only needs a single boss island option, so this helper
- * returns one matching boss island when available.
+ * This game version uses a single boss, so the helper returns at most one
+ * boss island option while still excluding already defeated bosses.
  *
  * @param {Array<{ id: string } & object>} bossBank
  * @param {Array<string>} [defeatedBossIds=[]]
  * @returns {Array<{ id: string } & object>}
  */
+export function generateBossGateOptions(bossBank, defeatedBossIds = []) {
+  if (!Array.isArray(bossBank)) {
+    return []
+  }
+
+  const defeatedSet = new Set(Array.isArray(defeatedBossIds) ? defeatedBossIds : [])
+  const availableBosses = bossBank.filter((island) =>
+    island && island.type === 'boss' && !defeatedSet.has(island.id),
+  )
+
+  if (availableBosses.length === 0) {
+    return []
+  }
+
+  return [availableBosses[0]]
+}
+
 /**
  * Marks an island as completed while keeping the rest of its data intact.
  *
