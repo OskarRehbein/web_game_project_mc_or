@@ -10,7 +10,7 @@
       {
         "id": "claw_swipe",
         "name": "Zarpazo de Pinza",
-        "telegraphDurationMs": 1200,
+        "telegraphDurationMs": 700,
         "damage": 15,
         "zones": [
           {

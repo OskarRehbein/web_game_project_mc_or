@@ -94,5 +94,28 @@
         "rarity": "common",
         "effect": {},
         "cost": 15
+    },
+    {
+        "id": "card_action_salty_fist",
+        "name": "Puño Salado",
+        "type": "action",
+        "description": "Lanza un golpe a distancia que inflige 12 de daño directo al jefe.",
+        "rarity": "common",
+        "effect": {
+            "directDamage": 12
+        },
+        "cost": 20,
+        "cooldown": 5
+    },
+    {
+        "id": "card_passive_shell_shield",
+        "name": "Escudo de Concha",
+        "type": "passive",
+        "description": "+15 HP máximo.",
+        "rarity": "common",
+        "effect": {
+            "flatHp": 15
+        },
+        "cost": 15
     }
 ]

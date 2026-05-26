@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-05-12  
 **Estado:** Aprobado — listo para implementar en `cards.json`  
-**Total:** 9 cartas únicas (3 Acción + 3 Pasiva + 3 Utilidad)
+**Total:** 11 cartas únicas (5 Acción + 4 Pasiva + 3 Utilidad)
 
 ---
 
@@ -74,7 +74,22 @@ Las cartas de Acción se activan manualmente durante el combate. Ejecutan su efe
 
 ---
 
-## Cartas Pasivas
+### A4 — Puño Salado
+
+> Carta de acción común obtenida como drop exclusivo del **Capitán Cangrejo**. También puede aparecer en tienda en partidas posteriores.
+
+| Campo | Valor |
+|-------|-------|
+| `id` | `card_action_salty_fist` |
+| `name` | Puño Salado |
+| `type` | `action` |
+| `rarity` | `common` |
+| `cost` | 20 |
+| `cooldown` | 5s |
+
+**Efecto:** Lanza un golpe a distancia que inflige **12 de daño directo** al jefe. No requiere acercarse al enemigo.
+
+**Nota de diseño:** DPS intencional bajo (2.4/s) comparado con el ataque básico ilimitado (10 dmg). Su valor es el rango — útil cuando acercarse es peligroso durante telegraphs activos.
 
 Las cartas Pasivas están activas automáticamente mientras estén en el mazo. Nunca se activan manualmente. Aplican sus modificadores a los stats del jugador desde el inicio del combate.
 
@@ -119,6 +134,22 @@ Las cartas Pasivas están activas automáticamente mientras estén en el mazo. N
 | `cost` | 20 |
 
 **Efecto:** `speedBonus: +80` → velocidad de movimiento aumenta de 200 a 280 px/s.
+
+---
+
+### P4 — Escudo de Concha
+
+> Carta pasiva común disponible **solo en tienda**. No dropea ningún jefe.
+
+| Campo | Valor |
+|-------|-------|
+| `id` | `card_passive_shell_shield` |
+| `name` | Escudo de Concha |
+| `type` | `passive` |
+| `rarity` | `common` |
+| `cost` | 15 |
+
+**Efecto:** `flatHp: +15` → HP máximo aumenta de 100 a 115. Apilable con Armadura de Cuero (+30) para llegar a 145 HP total.
 
 ---
 
@@ -193,3 +224,5 @@ Hacen una de dos cosas:
 | `card_utility_master_key` | Llave Maestra | utility | common | 15 | Desbloquea opciones con cerradura |
 | `card_utility_provisions` | Provisiones Extra | utility | common | 15 | Evita eventos negativos de escasez |
 | `card_utility_navigation_chart` | Carta de Navegación | utility | common | 15 | Garantiza loot máximo en exploración |
+| `card_action_salty_fist` | Puño Salado | action | common | 20 | 12 dmg a distancia, CD 5s — drop Capitán Cangrejo |
+| `card_passive_shell_shield` | Escudo de Concha | passive | common | 15 | +15 HP máximo — solo tienda |

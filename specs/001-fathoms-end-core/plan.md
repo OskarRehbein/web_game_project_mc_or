@@ -696,7 +696,7 @@ export function resolveOutcome(outcomes, rng = Math.random) {
  * @typedef {Object} AttackPattern
  * @property {string}   id
  * @property {number}   telegraphDurationMs   - Mínimo 1000 ms (FR-015)
- * @property {Zone[]}   damageZones
+ * @property {Zone[]}   zones
  * @property {number}   damage
  * @property {number}   [hpThreshold]         - 0–100. RESERVADO PARA USO FUTURO.
  *   Si está ausente o undefined, el patrón está SIEMPRE activo.
@@ -769,14 +769,14 @@ export function pickPattern(eligible, rng = Math.random) {
       "id": "canonazo_frontal",
       "telegraphDurationMs": 1500,
       "damage": 25,
-      "damageZones": [{ "x": 0, "y": 300, "width": 960, "height": 80 }]
+      "zones": [{ "x": 0, "y": 300, "width": 960, "height": 80 }]
       // hpThreshold ausente → siempre activo
     },
     {
       "id": "salva_lateral",
       "telegraphDurationMs": 2000,
       "damage": 15,
-      "damageZones": [
+      "zones": [
         { "x": 0,   "y": 0, "width": 200, "height": 540 },
         { "x": 760, "y": 0, "width": 200, "height": 540 }
       ]

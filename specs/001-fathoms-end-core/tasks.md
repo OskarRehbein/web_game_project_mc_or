@@ -169,6 +169,144 @@
 
 ---
 
+## Phase 9: B1 — Capitán Cangrejo (Implementación Completa)
+
+**Objetivo**: Implementar al Capitán Cangrejo exactamente como lo describe `src/assets/concept/boss-design.md`: HP 900, 4 patrones de ataque (2 zarpazos estáticos, 1 cascada con hitbox móvil, 1 golpe de suelo con zonas dinámicas). Cada tarea es autocontenida y tiene un criterio de verificación claro.
+
+**Input de diseño**: `src/assets/concept/boss-design.md` — sección B1. Leer antes de implementar cualquier tarea de esta fase.
+
+**Independent Test**: Navegar a `/combat` con `crab_captain` cargado en `gameStore.currentBoss`. Los 4 patrones se deben telegrafiar y disparar correctamente. Victoria al acumular 900 dmg total al jefe.
+
+---
+
+### Paso 1 — Datos (sin tocar el motor)
+
+- [ ] T063 [P] Reescribir la entrada `crab_captain` en `src/assets/data/bosses.json` con los valores finales del diseño (2026-05-26): `hp/maxHp: 900`; campo raíz `attackCooldown: { min: 300, max: 2000 }`; 4 patrones con `weight`, `damage`, `telegraphDurationMs`, `zones` y campos especiales (`motion`, `directionMode`, `rockZoneCandidates`, `dynamicZones`) según spec; `lootPool` con solo Puño Salado (Escudo de Concha es de tienda, no dropea el jefe) — `src/assets/data/bosses.json`
+
+  **Datos exactos a escribir** (extraídos de boss-design.md, sesión 2026-05-26):
+  ```json
+  {
+    "id": "crab_captain", "name": "Capitán Cangrejo", "isMajor": false,
+    "hp": 900, "maxHp": 900, "spriteKey": "boss_crab_captain",
+    "attackCooldown": { "min": 300, "max": 2000 },
+    "attackPatterns": [
+      { "id": "claw_swipe_left",  "damage": 10, "telegraphDurationMs": 700, "weight": 40,
+        "zones": [{ "x": 0,   "y": 200, "width": 530, "height": 200 }] },
+      { "id": "claw_swipe_right", "damage": 10, "telegraphDurationMs": 700, "weight": 40,
+        "zones": [{ "x": 430, "y": 200, "width": 530, "height": 200 }] },
+      { "id": "bubble_cascade",   "damage": 12, "telegraphDurationMs": 1400, "weight": 15,
+        "zones": [{ "x": 0, "y": 150, "width": 150, "height": 300 }],
+        "motion": { "fromX": 0, "toX": 810, "durationMs": 1400 },
+        "directionMode": "random" },
+      { "id": "ground_slam",      "damage": 20, "telegraphDurationMs": 2200, "weight": 5,
+        "zones": [{ "x": 160, "y": 300, "width": 640, "height": 180 }],
+        "rockDamage": 15,
+        "rockZoneCandidates": [
+          { "x": 100, "y": 150 }, { "x": 300, "y": 420 }, { "x": 500, "y": 160 }, { "x": 700, "y": 400 },
+          { "x": 180, "y": 350 }, { "x": 600, "y": 300 }, { "x": 400, "y": 200 }, { "x": 820, "y": 160 }
+        ],
+        "dynamicZones": { "count": 4, "mode": "candidates", "zoneSize": 100 } }
+    ],
+    "lootPool": [
+      { "cardId": "card_action_salty_fist" }
+    ]
+  }
+  ```
+
+  **Verificación**: `JSON.parse(fs.readFileSync('bosses.json'))` no lanza error; el objeto tiene `hp === 900`, `attackPatterns.length === 4`, `attackCooldown.min === 300`.
+
+### Paso 1b — Selección ponderada y cooldown entre ataques
+
+> Estas dos tareas extienden módulos ya completados (T024 y T026). No modifican comportamiento previo — solo agregan la nueva lógica cuando el campo correspondiente está presente en el JSON.
+
+- [ ] T072 [P] Extender `pickPattern(eligible, rng)` en `src/engine/combat/AttackPatternSelector.js` para **selección ponderada**: si los patrones elegibles tienen el campo `weight`, hacer selección ponderada (suma pesos, generar `rng() * totalWeight`, iterar hasta acumular el umbral); si ningún patrón tiene `weight`, mantener el comportamiento anterior (uniforme); agregar test en `tests/unit/engine/AttackPatternSelector.test.js`: con pesos `[90, 5, 5]` y `rng=()=>0.0` → elige el primero; `rng=()=>0.91` → elige el segundo; `rng=()=>0.96` → elige el tercero — `src/engine/combat/AttackPatternSelector.js`
+
+- [ ] T073 Implementar pausa `attackCooldown` en `src/engine/combat/CombatEngine.js`: después de que `fireAttack()` completa (y el daño se aplica), si `boss.attackCooldown` existe, esperar un tiempo aleatorio entre `attackCooldown.min` y `attackCooldown.max` ms antes de iniciar el siguiente `beginTelegraph()`; implementar con un flag `state.cooldownTimer` que el game loop descuenta en cada tick (en ms, usando `ticker.deltaMS`); **eliminar la constante `PATTERN_INTERVAL = 3000` y la variable `timeSinceLastAttack`** — reemplazarlas por el nuevo sistema de cooldown; si `boss.attackCooldown` no existe, usar `{ min: 3000, max: 3000 }` como fallback para mantener el comportamiento anterior — `src/engine/combat/CombatEngine.js`
+
+---
+
+### Paso 2 — Lógica pura (sin PixiJS, testeable)
+
+- [ ] T064 [P] Crear función pura `computeMotionZone(baseZone, motion, directionMode, progress, rng)` en `src/engine/combat/MotionZone.js`: recibe la zona base `{x,y,width,height}`, el descriptor `motion:{fromX,toX,durationMs}`, `directionMode` (`"ltr"|"rtl"|"random"`), un progreso `progress` (0–1) y una función `rng`; si `directionMode === "random"` usa `rng` para elegir L→R o R→L en cada invocación; devuelve la zona con `x` interpolado linealmente entre `fromX` y `toX` según `progress`; exportar también `resolveDirection(directionMode, rng)` (devuelve `"ltr"` o `"rtl"`) — `src/engine/combat/MotionZone.js`
+
+- [ ] T065 [P] Crear función pura `generateDynamicZones(spec, arenaW, arenaH, rng)` en `src/engine/combat/DynamicZoneGenerator.js`: recibe `spec:{count, mode, zoneSize, candidates?}`, dimensiones de arena y `rng`; **si `mode === "candidates"` y `spec.candidates` existe**, selecciona `count` entradas al azar de `candidates` (sin repetición) y devuelve zonas `{x: c.x, y: c.y, width: zoneSize, height: zoneSize}`; **si `mode === "random"`**, genera `count` zonas con posiciones aleatorias dentro de `[0, arenaW-zoneSize] × [0, arenaH-zoneSize]`; en ambos modos garantiza que ninguna zona se salga del canvas — `src/engine/combat/DynamicZoneGenerator.js`
+
+---
+
+### Paso 3 — Tests (escribir ANTES de integrar al motor)
+
+- [ ] T066 [P] Escribir tests unitarios para `MotionZone.js`: `progress=0` → `x === fromX`; `progress=1` → `x === toX`; `progress=0.5` → `x` es el punto medio; `directionMode="ltr"` → siempre L→R; `directionMode="rtl"` → siempre R→L; `directionMode="random"` con `rng=()=>0` → L→R, con `rng=()=>0.9` → R→L; la `y`, `width` y `height` de la zona devuelta no cambian — `tests/unit/engine/MotionZone.test.js`
+
+- [ ] T067 [P] Escribir tests unitarios para `DynamicZoneGenerator.js` en `tests/unit/engine/DynamicZoneGenerator.test.js`:
+  - **Modo `random`**: genera exactamente `count` zonas; `width === zoneSize` y `height === zoneSize`; ninguna zona sale del canvas; mismo seed → mismo resultado; distinto seed → resultado diferente
+  - **Modo `candidates`**: genera exactamente `count` zonas; todas las posiciones provienen del array `candidates`; no se repite la misma entrada del array en un mismo llamado; `width` y `height` iguales a `zoneSize`
+  - **Caso límite**: si `mode === "candidates"` pero `candidates` no existe → lanza error descriptivo
+
+---
+
+### Paso 4 — Integración en el motor (CombatEngine)
+
+> ⚠️ Hacer T066 y T067 pasar en verde antes de tocar el motor.
+
+- [ ] T068 Extender `beginTelegraph()` en `src/engine/combat/CombatEngine.js` para soporte de hitbox móvil (`motion`):
+  - Importar `computeMotionZone`, `resolveDirection` de `MotionZone.js`
+  - Al iniciar un patrón con `pattern.motion`, llamar `resolveDirection(pattern.directionMode, Math.random)` y guardar en `state.currentDirection`; guardar el progreso inicial en `state.motionProgress = 0`
+  - En el game loop (ticker), si `state.telegraphActive && state.currentPattern?.motion`: calcular `progress = 1 - state.telegraphTimer / state.currentPattern.telegraphDurationMs`; actualizar `state.activeZones[0]` con `computeMotionZone(base, motion, direction, progress)`; redibujar `telegraphGfx` con la zona actualizada
+  - `state` necesita 2 nuevos campos: `currentDirection: null` y `motionProgress: 0`
+  - **Ningún otro comportamiento del motor debe cambiar** — `src/engine/combat/CombatEngine.js`
+
+- [ ] T069 Extender `beginTelegraph()` en `src/engine/combat/CombatEngine.js` para soporte de zonas dinámicas (`dynamicZones`):
+  - Importar `generateDynamicZones` de `DynamicZoneGenerator.js`
+  - Al iniciar un patrón con `pattern.dynamicZones`, llamar `generateDynamicZones(spec, 960, 540, Math.random)` donde `spec` incluye `pattern.rockZoneCandidates` si existe: `{ ...pattern.dynamicZones, candidates: pattern.rockZoneCandidates }` y guardar resultado en `state.rockZones`
+  - Dibujar las zonas de roca en `telegraphGfx` como **círculos** (radio = `zoneSize/2`) con color distinto al telegraph normal (usar `COLORS.telegraph` con alpha 0.5 y borde punteado imitado con círculo + stroke)
+  - En `fireAttack()`, si `state.currentPattern?.dynamicZones`, agregar `state.rockZones` a la colisión con daño `pattern.rockDamage ?? 15`; limpiar `state.rockZones = []` al terminar
+  - `state` necesita 1 nuevo campo: `rockZones: []`
+  - **Los zarpazos y patrones sin campos especiales deben comportarse exactamente igual que antes** — `src/engine/combat/CombatEngine.js`
+
+---
+
+### Paso 5 — Visual del jefe (sprite placeholder)
+
+- [ ] T070 [P] Agregar rama condicional en la función de dibujo del jefe en `src/engine/combat/CombatEngine.js`: si `boss.spriteKey === "boss_crab_captain"`, dibujar al cangrejo con gráficos vectoriales PixiJS (cuerpo circular rojizo de ~160×140 px con dos pinzas laterales simétricas como rectángulos redondeados + ojos amarillos + patas decorativas); si no hay sprite cargado usar el fallback rectangular existente; la posición del jefe debe seguir siendo fija en `(ARENA_WIDTH/2, 130)` — `src/engine/combat/CombatEngine.js`
+
+  > **Nota**: No bloquea la jugabilidad. Puede implementarse en paralelo con T068–T069. El sprite real se puede reemplazar después con un asset PNG real sin tocar la lógica.
+
+---
+
+### Paso 6 — Verificación final
+
+- [ ] T071 Validación integral del Capitán Cangrejo: ejecutar `pnpm test` y verificar que T066 y T067 pasan; abrir `/combat` con `crab_captain` como jefe activo; confirmar visualmente que:
+  1. `claw_swipe_left` telegrafía y golpea el lado izquierdo (x=0–530)
+  2. `claw_swipe_right` telegrafía y golpea el lado derecho (x=430–960), la zona central x=430–530 es peligrosa para ambos
+  3. `bubble_cascade` mueve el rectángulo de un extremo al otro durante 1400ms; la dirección cambia aleatoriamente entre usos
+  4. `ground_slam` muestra 4 círculos de caída en posiciones distintas cada vez; el área central (x=160–800) también se telegrafía
+  5. El jefe aguanta 90 ataques básicos sin modificadores antes de morir
+  Documentar cualquier ajuste de balance en `boss-design.md` sección "Nota de balance post-playtesting" — validación manual
+
+---
+
+### Dependencias dentro de la fase
+
+```
+T063 (datos JSON)
+    ↓
+T064 [P]  T065 [P]  T072 [P]  T073   ← Paralelizables entre sí (todos requieren solo T063)
+    ↓          ↓
+T066 [P]  T067 [P]              ← Tests, paralelizables (requieren T064/T065 respectivamente)
+    ↓          ↓
+T068       T069                  ← Motor: T068 requiere T064+T066 ✓; T069 requiere T065+T067 ✓
+    ↓          ↓
+    └────┬──────┘
+         ↓
+        T070 [P]                 ← Visual (paralelizable, no bloquea jugabilidad)
+         ↓
+        T071 (validación final, requiere T063+T068+T069+T072+T073 completados)
+```
+
+**Checkpoint de la fase**: `pnpm test` pasa con T066 y T067 en verde. El combate contra `crab_captain` es completamente funcional con los 4 patrones. El jefe tiene 900 HP visibles en el HUD.
+
+---
+
 ## Phase 8: Polish & Concerns Transversales
 
 **Objetivo**: Integración visual completa, contador de oro en HUD, verificación de cobertura 100% y Docker listo.
@@ -198,6 +336,8 @@ Phase 3 (US1)  Phase 4 (US2)  Phase 5 (US3)    ← Paralelizables entre sí
             Phase 7 (US5)     ← Requiere US2 (MapView funcional)
                    ↓
             Phase 8 (Polish)
+                   ↓
+            Phase 9 (B1 Capitán Cangrejo)  ← Requiere Phase 3 (CombatEngine funcional)
 ```
 
 **Nota**: US1, US2 y US3 son independientes entre sí una vez completada la Phase 2. Pueden implementarse en paralelo por distintos desarrolladores.
