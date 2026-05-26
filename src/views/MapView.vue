@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Island } from '@/engine/entities/Island.js'
 import { Ship } from '@/engine/entities/Ship.js'
@@ -33,7 +33,7 @@ import islandsData from '@/assets/data/islands.json'
 import eventsData from '@/assets/data/events.json'
 import bossesData from '@/assets/data/bosses.json'
 import cardsData from '@/assets/data/cards.json'
-import { generateIslandOptions, generateBossGateOptions, generateFinalGateOption } from '@/engine/simulation/MapGenerator.js'
+import { generateIslandOptions, generateBossGateOptions } from '@/engine/simulation/MapGenerator.js'
 import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
 import { generateShopCatalog } from '@/engine/simulation/ShopSystem.js'
 import EventWindow from '@/components/EventWindow.vue'
@@ -404,6 +404,13 @@ function handleSelectOption(optionIndex) {
   }
 
   if (outcome?.type === 'end' && !outcome?.nextEventId) {
+    // Special handling for Fathom's End final island
+    const islandData = islandsData.find((i) => i.id === currentIslandInRange?.id)
+    if (islandData?.type === 'final') {
+      router.push({ name: 'victory' })
+      return
+    }
+    
     endCurrentEvent()
     return
   }
@@ -639,6 +646,17 @@ onMounted(async () => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
 })
+
+// Re-initialize islands when a boss is defeated to update the gate status
+watch(
+  () => gameStore.bossIslandsDefeated.length,
+  () => {
+    if (islands.length > 0) {
+      // Map is already initialized, regenerate islands with new gate status
+      resetExplorationMap()
+    }
+  }
+)
 
 onUnmounted(() => {
   // Limpiar event listeners
