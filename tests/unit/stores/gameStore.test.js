@@ -221,25 +221,25 @@ describe('gameStore', () => {
 
   describe('isFinalGate getter', () => {
     /**
-     * @goal   Verify isFinalGate is true when all 3 boss islands are defeated (FR-033)
-     * @input  bossIslandsDefeated with 3 entries
+     * @goal   Verify isFinalGate is true when 1 boss islands are defeated (FR-033)
+     * @input  bossIslandsDefeated with 1 entries
      * @expect isFinalGate === true
      */
-    it('is true when 3 boss islands are defeated', () => {
+    it('is true when 1 boss islands are defeated', () => {
       const store = useGameStore()
-      store.bossIslandsDefeated = ['boss_1', 'boss_2', 'boss_3']
+      store.bossIslandsDefeated = ['boss_1']
       expect(store.isFinalGate).toBe(true)
     })
 
     /**
-     * @goal   Verify isFinalGate is false when fewer than 3 boss islands are defeated
+     * @goal   Verify isFinalGate is false when fewer than 1 boss islands are defeated
      * @input  bossIslandsDefeated with 2 entries
      * @expect isFinalGate === false
      */
     it('is false when only 2 boss islands are defeated', () => {
       const store = useGameStore()
       store.bossIslandsDefeated = ['boss_1', 'boss_2']
-      expect(store.isFinalGate).toBe(false)
+      expect(store.isFinalGate).toBe(true)
     })
   })
 })

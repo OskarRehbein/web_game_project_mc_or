@@ -33,7 +33,7 @@ import islandsData from '@/assets/data/islands.json'
 import eventsData from '@/assets/data/events.json'
 import bossesData from '@/assets/data/bosses.json'
 import cardsData from '@/assets/data/cards.json'
-import { generateIslandOptions } from '@/engine/simulation/MapGenerator.js'
+import { generateIslandOptions, generateBossGateOptions, generateFinalGateOption } from '@/engine/simulation/MapGenerator.js'
 import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
 import { generateShopCatalog } from '@/engine/simulation/ShopSystem.js'
 import EventWindow from '@/components/EventWindow.vue'
@@ -108,8 +108,16 @@ function mapVisualType(island) {
 }
 
 function initializeIslands() {
-  // choose three island options from the bank
-  const options = generateIslandOptions(islandsData, 3, null, Math.random)
+  let options
+
+  if (gameStore.isFinalGate) {
+    const finalIsland = islandsData.find((i) => i.type === 'final')
+    options = finalIsland ? [finalIsland] : []
+  } else if (gameStore.isBossGate) {
+    options = generateBossGateOptions(islandsData, gameStore.bossIslandsDefeated)
+  } else {
+    options = generateIslandOptions(islandsData, 3, null, Math.random)
+  }
 
   // helper: distance between two points
   function dist(a, b) {
@@ -276,6 +284,13 @@ function buildResultData(decision, outcome) {
 }
 
 function endCurrentEvent() {
+  // Increment counter when a regular or shop island event finishes
+  if (currentIslandInRange) {
+    const islandData = islandsData.find((i) => i.id === currentIslandInRange.id)
+    if (islandData && (islandData.type === 'regular' || islandData.type === 'shop')) {
+      gameStore.regularIslandsCompleted += 1
+    }
+  }
   showResultWindow.value = false
   showEventWindow.value = false
   eventData.value.options = []

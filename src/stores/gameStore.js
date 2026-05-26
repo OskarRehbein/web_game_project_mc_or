@@ -29,14 +29,14 @@ export const useGameStore = defineStore('game', {
      *              choose a boss island next (FR-031). Triggers after every 5th island.
      * @returns {boolean}
      */
-    isBossGate: (state) => state.regularIslandsCompleted > 0 && state.regularIslandsCompleted % 5 === 0,
+    isBossGate: (state) => state.regularIslandsCompleted > 0 && state.regularIslandsCompleted % 5 === 0 && state.bossIslandsDefeated.length === 0,
 
     /**
      * @description True when 3 or more major bosses have been defeated, meaning
      *              only Fathom's End remains available (FR-033).
      * @returns {boolean}
      */
-    isFinalGate: (state) => state.bossIslandsDefeated.length >= 3,
+    isFinalGate: (state) => state.bossIslandsDefeated.length >= 1,
   },
 
   actions: {
