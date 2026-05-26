@@ -13,12 +13,13 @@ describe('MapGenerator', () => {
   describe('generateIslandOptions', () => {
     it('returns exactly 3 options when the bank has enough unique islands', () => {
       const bank = [
-        { id: 'a', name: 'Isla A' },
-        { id: 'b', name: 'Isla B' },
-        { id: 'c', name: 'Isla C' },
-        { id: 'd', name: 'Isla D' },
+        { id: 'a', name: 'Isla A', type: 'regular' },
+        { id: 'b', name: 'Isla B', type: 'regular' },
+        { id: 'c', name: 'Isla C', type: 'regular' },
+        { id: 'd', name: 'Isla D', type: 'regular' },
       ]
-      const rng = () => 0
+      let callCount = 0
+      const rng = () => [(0.1), (0.4), (0.7)][callCount++] || 0
 
       const options = generateIslandOptions(bank, 3, null, rng)
 
@@ -28,11 +29,12 @@ describe('MapGenerator', () => {
 
     it('does not include the immediately previous island when an alternative exists', () => {
       const bank = [
-        { id: 'a', name: 'Isla A' },
-        { id: 'b', name: 'Isla B' },
-        { id: 'c', name: 'Isla C' },
+        { id: 'a', name: 'Isla A', type: 'regular' },
+        { id: 'b', name: 'Isla B', type: 'regular' },
+        { id: 'c', name: 'Isla C', type: 'regular' },
       ]
-      const rng = () => 0
+      let callCount = 0
+      const rng = () => [(0.1), (0.6), (0.1)][callCount++] || 0
 
       const options = generateIslandOptions(bank, 3, 'b', rng)
 
@@ -42,10 +44,11 @@ describe('MapGenerator', () => {
 
     it('samples with replacement once the filtered pool is exhausted', () => {
       const bank = [
-        { id: 'a', name: 'Isla A' },
-        { id: 'b', name: 'Isla B' },
+        { id: 'a', name: 'Isla A', type: 'regular' },
+        { id: 'b', name: 'Isla B', type: 'regular' },
       ]
-      const rng = () => 0
+      let callCount = 0
+      const rng = () => [(0.1), (0.6), (0.1)][callCount++] || 0
 
       const options = generateIslandOptions(bank, 3, null, rng)
 

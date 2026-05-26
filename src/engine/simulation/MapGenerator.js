@@ -13,6 +13,7 @@
  *
  * The function samples from regular and shop islands, excluding the
  * immediately previous island whenever an alternative exists.
+ * When the pool is exhausted, it samples with replacement.
  *
  * @param {Array<{ id: string } & object>} bank
  * @param {number} count
@@ -36,20 +37,16 @@ export function generateIslandOptions(bank, count = 2, previousIslandId = null, 
     return []
   }
 
-  // Enforce exactly two options max (but return fewer when pool smaller)
-  const MAX_OPTIONS = 2
-  const uniqueCount = Math.min(MAX_OPTIONS, filteredPool.length)
+  // Sample with replacement if needed
+  const result = []
+  const poolLength = filteredPool.length
 
-  // Simple Fisher-Yates shuffle using provided rng to randomize selection
-  const pool = [...filteredPool]
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    const tmp = pool[i]
-    pool[i] = pool[j]
-    pool[j] = tmp
+  for (let i = 0; i < count; i++) {
+    const randomIndex = Math.floor(rng() * poolLength)
+    result.push(filteredPool[randomIndex])
   }
 
-  return pool.slice(0, uniqueCount)
+  return result
 }
 
 /**
