@@ -140,7 +140,7 @@
 - [X] T050 [P] [US4] Extender `MapGenerator` con `generateFinalGateOption(finalIsland)` (devuelve solo `Fathom's End` cuando `bossIslandsDefeated.length >= 3`) en `src/engine/simulation/MapGenerator.js`
 - [ ] T051 [P] [US4] Añadir datos de cartas únicas para cada jefe principal y datos del jefe final con su carta de mayor rareza en `src/assets/data/bosses.json` y `src/assets/data/cards.json`
 - [X] T052 [US4] Implementar `VictoryView.vue` (pantalla de victoria con: resumen de la partida — islas completadas, cartas adquiridas, carta del jefe final obtenida — y botón "Jugar de Nuevo" que navega a `/`) en `src/views/VictoryView.vue`
-- [ ] T053 [US4] Actualizar `gameStore.resolveCombatVictory()` para: incrementar `regularIslandsCompleted` o agregar a `bossIslandsDefeated[]` según `currentBoss.isMajor`; agregar carta única del jefe a `pendingRewards` cuando `isMajor=true`; navegar a `VictoryView` cuando se derrota el jefe final en `src/stores/gameStore.js`
+- [X] T053 [US4] Actualizar `gameStore.resolveCombatVictory()` para: incrementar `regularIslandsCompleted` o agregar a `bossIslandsDefeated[]` según `currentBoss.isMajor`; agregar carta única del jefe a `pendingRewards` cuando `isMajor=true`; navegar a `VictoryView` cuando se derrota el jefe final en `src/stores/gameStore.js`
 
 **Checkpoint**: Una partida completa puede jugarse de principio a fin. Después de 5 islas regulares solo aparecen islas de jefe. Después de 3 jefes, solo aparece Fathom's End. La victoria muestra el resumen correcto.
 
