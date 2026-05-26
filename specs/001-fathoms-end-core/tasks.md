@@ -148,22 +148,24 @@
 
 ## Phase 7: User Story 5 — Eventos de Mar entre Islas (Priority: P5)
 
-**Objetivo**: Al navegar hacia una isla, un evento oceánico puede interrumpir la travesía con probabilidad creciente. Los debuffs aplicados persisten durante el siguiente combate y se muestran en el HUD.
+**Objetivo**: Mientras el barco navega libremente por el mapa, existe una pequeña probabilidad de disparar un evento oceánico cada X píxeles recorridos. El evento congela el barco, se resuelve como cualquier otro evento, y el barco resume su movimiento. En un juego completo (start → VictoryView) el jugador debería encontrar ~2 eventos de mar.
 
-**Independent Test**: Forzar `shouldTriggerSeaEvent` con `rng` controlado, verificar que el EventModal del evento de mar aparece, que el débuff se aplica al jugador y que desaparece al terminar el combate.
+**Arquitectura**: El barco NO tiene un "destino" — se mueve libremente. Los eventos de mar son probabilísticos basados en **distancia acumulada viajada**, no en islas visitadas.
+
+**Independent Test**: Inyectar un evento de mar forzado durante la navegación, verificar que el barco se congela, el evento se resuelve, y el barco resume movimiento normalmente.
 
 ### Tests — User Story 5
 
-- [ ] T054 [P] [US5] Escribir tests unitarios para `SeaEventRoller` (`P(0)=0.10`, `P(8)=0.45`, linealidad en `P(4)≈0.275`, `shouldTriggerSeaEvent` con `rng=0` siempre dispara, con `rng=1` nunca dispara) en `tests/unit/engine/SeaEventRoller.test.js`
+- [ ] T054 [P] [US5] Escribir tests unitarios para `SeaEventTrigger` (probabilidad acumulativa por píxeles: cada 150 px se evalúa probabilidad ~7%, esperando ~2 eventos en 4000 px totales de navegación típica; `checkTrigger(distanceTraveled, rng)` retorna boolean, `calculateCumulativeProbability(pixelDistance)` lineal) en `tests/unit/engine/SeaEventTrigger.test.js`
 
 ### Implementación — User Story 5
 
-- [ ] T055 [P] [US5] Implementar `seaEventProbability(islandsCompleted)` (fórmula lineal `P_MIN + (P_MAX - P_MIN) × n/N_TOTAL` con `P_MIN=0.10`, `P_MAX=0.45`, `N_TOTAL=8`) y `shouldTriggerSeaEvent(islandsCompleted, rng)` en `src/engine/simulation/SeaEventRoller.js`
-- [ ] T056 [P] [US5] Añadir ≥5 eventos de mar al JSON de eventos con `isSeaEvent: true`; al menos 2 con outcome de tipo `debuff` (`{ type: 'damage'|'speed'|'hp', magnitude: 0.1–0.3, expireAfterCombat: true }`) y probabilidades visibles en `src/assets/data/events.json`
-- [ ] T057 [US5] Actualizar handler `navigateToIsland(island)` en `MapView.vue`: llamar `shouldTriggerSeaEvent(gameStore.regularIslandsCompleted)` antes de procesar la isla; si dispara, cargar un evento de mar aleatorio con `gameStore.setCurrentEvent(seaEvent)` y resolver antes de continuar; los débuffs del outcome se agregan a `gameStore.pendingDebuffs[]` en `src/views/MapView.vue` (depende de T040, T055)
-- [ ] T058 [P] [US5] Implementar `DebuffIndicator.vue` (muestra lista de débuffs activos del jugador con tipo e intensidad; visible en `CombatView.vue` cuando `playerStore.hasActiveDebuffs === true`) en `src/components/hud/DebuffIndicator.vue`
+- [ ] T055 [P] [US5] Implementar `SeaEventTrigger.js` con: `calculateCumulativeProbability(cumulativePixels)` (fórmula: probabilidad acumulativa para disparar evento raro ~10-20% en game completo), `checkTrigger(cumulativePixels, rng)` (compara RNG contra probabilidad), y `resetTrigger()` (limpia estado tras evento) en `src/engine/simulation/SeaEventTrigger.js`
+- [ ] T056 [P] [US5] Separar eventos de mar en JSON: crear sección `seaEvents[]` dentro de `src/assets/data/events.json` con ≥5 eventos de mar (marcados con `biome: 'sea'`, `isSeaEvent: true`); incluir ≥2 con outcomes de penalización (`type: 'debuff'` con `{ type: 'damage'|'speed'|'hp', magnitude: 0.1–0.3, expireAfterCombat: true }`) y mostrar probabilidades en opciones
+- [ ] T057 [P] [US5] Integrar disparador de eventos de mar en `MapView.vue`: rastrear `cumulativePixelsTraveled` desde inicio de exploración, en cada frame del animation loop llamar `seaEventTrigger.checkTrigger(cumulativePixelsTraveled, Math.random())`, si dispara → seleccionar evento de mar aleatorio, congelar barco (`pauseShipMovement = true`), mostrar EventWindow con el evento, resolver decisión, aplicar débuffs a `gameStore.pendingDebuffs[]`, resumir movimiento normal en `src/views/MapView.vue`
+- [ ] T058 [P] [US5] Actualizar `DebuffIndicator.vue` para mostrar débuffs activos del jugador con iconos y magnitud (e.g., "⚔️ -20% daño"); integrar en `CombatView.vue` HUD durante combate; validar que débuffs de mar desaparecen al terminar combate (mediante `clearCombatDebuffs()`) en `src/components/hud/DebuffIndicator.vue`
 
-**Checkpoint**: Navegar islas con RNG controlado muestra eventos de mar. Los débuffs aparecen en el HUD de combate y desaparecen al terminar el combate. El test pasa en verde con los valores exactos de la fórmula.
+**Checkpoint**: Navegando libremente por el mapa, cada ~4000 píxeles de navegación típica disparar ~2 eventos de mar. El barco se congela, se resuelve el evento, débuffs se aplican y se muestran en combate, luego se limpian correctamente.
 
 ---
 
