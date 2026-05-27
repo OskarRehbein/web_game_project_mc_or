@@ -53,6 +53,7 @@
               :hp="playerHp"
               :max-hp="playerMaxHp"
             />
+            <GoldCounter />
           </div>
 
           <div class="combat-view__hotbar">
@@ -109,6 +110,7 @@ import { useDeckStore } from '@/stores/deckStore.js'
 import { createCombatApp } from '@/engine/combat/CombatEngine.js'
 import BossHealthBar from '@/components/hud/BossHealthBar.vue'
 import HealthBar from '@/components/hud/HealthBar.vue'
+import GoldCounter from '@/components/hud/GoldCounter.vue'
 
 /**
  * @description Pantalla de combate fullscreen. Monta el canvas PixiJS en onMounted,
@@ -366,6 +368,9 @@ onUnmounted(() => {
 .combat-view__hp-block {
   pointer-events: none;
   min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .combat-view__hotbar {

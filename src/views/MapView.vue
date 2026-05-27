@@ -6,6 +6,14 @@
         class="map-canvas"
       />
     </div>
+
+    <!-- HUD Overlay -->
+    <div class="map-hud">
+      <div class="map-hud__top-right">
+        <GoldCounter />
+      </div>
+    </div>
+
     <!-- Ventana de eventos -->
     <EventWindow
       v-if="showEventWindow"
@@ -37,6 +45,7 @@ import { generateIslandOptions, generateBossGateOptions } from '@/engine/simulat
 import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
 import { generateShopCatalog } from '@/engine/simulation/ShopSystem.js'
 import EventWindow from '@/components/EventWindow.vue'
+import GoldCounter from '@/components/hud/GoldCounter.vue'
 import { useGameStore } from '@/stores/gameStore.js'
 import { usePlayerStore } from '@/stores/playerStore.js'
 import { useDeckStore } from '@/stores/deckStore.js'
@@ -730,5 +739,21 @@ onUnmounted(() => {
   cursor: crosshair;
   max-width: 100%;
   max-height: 100%;
+}
+
+.map-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Allows clicks to pass through to the canvas */
+}
+
+.map-hud__top-right {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  pointer-events: auto; /* So you could hover or click tooltips if added */
 }
 </style>

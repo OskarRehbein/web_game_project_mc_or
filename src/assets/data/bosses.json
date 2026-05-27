@@ -2,7 +2,7 @@
   {
     "id": "crab_captain",
     "name": "Capitán Cangrejo",
-    "isMajor": false,
+    "isMajor": true,
     "hp": 120,
     "maxHp": 120,
     "spriteKey": "boss_crab_captain",
