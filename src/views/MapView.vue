@@ -9,6 +9,12 @@
 
     <!-- HUD Overlay -->
     <div class="map-hud">
+      <div class="map-hud__top-left">
+        <HealthBar
+          :hp="playerStore.hp"
+          :max-hp="playerStore.maxHp"
+        />
+      </div>
       <div class="map-hud__top-right">
         <GoldCounter />
       </div>
@@ -46,6 +52,7 @@ import { resolveOutcome } from '@/engine/simulation/EventResolver.js'
 import { generateShopCatalog } from '@/engine/simulation/ShopSystem.js'
 import EventWindow from '@/components/EventWindow.vue'
 import GoldCounter from '@/components/hud/GoldCounter.vue'
+import HealthBar from '@/components/hud/HealthBar.vue'
 import { useGameStore } from '@/stores/gameStore.js'
 import { usePlayerStore } from '@/stores/playerStore.js'
 import { useDeckStore } from '@/stores/deckStore.js'
@@ -414,6 +421,40 @@ function handleInteraction() {
   }
 }
 
+function applyOutcomeRewards(outcome) {
+  if (!outcome) return
+
+  if (typeof outcome.hpGain === 'number' && outcome.hpGain > 0) {
+    playerStore.heal(outcome.hpGain)
+  }
+  
+  if (typeof outcome.hpLoss === 'number' && outcome.hpLoss > 0) {
+    playerStore.applyDamage(outcome.hpLoss)
+  }
+
+  if (typeof outcome.maxHpGain === 'number' && outcome.maxHpGain > 0) {
+    playerStore.maxHp += outcome.maxHpGain
+    playerStore.hp += outcome.maxHpGain // Curar también al ganar maxHp? Generalmente sí, o al menos incrementar la vida máxima
+  }
+
+  if (typeof outcome.lootGain === 'number' && outcome.lootGain > 0) {
+    playerStore.addGold(outcome.lootGain)
+  }
+
+  if (typeof outcome.lootLoss === 'number' && outcome.lootLoss > 0) {
+    if (outcome.lootLossMode === 'up_to_available') {
+      playerStore.spendGold(Math.min(playerStore.gold, outcome.lootLoss))
+    } else {
+      // Evitar errores si no tiene suficiente, solo dejar en 0
+      playerStore.spendGold(Math.min(playerStore.gold, outcome.lootLoss)) 
+    }
+  }
+
+  if (outcome.itemId) {
+    // Si queremos otorgar items en el futuro
+  }
+}
+
 /**
  * Maneja la selección de una opción del evento
  */
@@ -435,6 +476,9 @@ function handleSelectOption(optionIndex) {
   }
 
   const outcome = resolveOutcome(decision.outcomes || [])
+
+  // Apply all stat and loot modifiers from the outcome
+  applyOutcomeRewards(outcome)
 
   if (outcome?.type === 'boss') {
     goToCombat(outcome.bossId)
@@ -748,6 +792,13 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   pointer-events: none; /* Allows clicks to pass through to the canvas */
+}
+
+.map-hud__top-left {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  pointer-events: auto;
 }
 
 .map-hud__top-right {
