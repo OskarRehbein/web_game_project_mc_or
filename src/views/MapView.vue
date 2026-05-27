@@ -324,7 +324,34 @@ function goToCombat(bossId) {
 /**
  * Maneja la presión de teclas
  */
+const keyMap = {
+  w: 'ArrowUp', W: 'ArrowUp',
+  s: 'ArrowDown', S: 'ArrowDown',
+  a: 'ArrowLeft', A: 'ArrowLeft',
+  d: 'ArrowRight', D: 'ArrowRight'
+}
+
 function handleKeyDown(event) {
+  // Manejo de la ventana de resultados de eventos (Cerrar con espacio/enter)
+  if (showResultWindow.value || (isShopMode.value && !showResultWindow.value)) {
+    if (event.key === ' ' || event.key === 'Enter') {
+      if (!keysPressed[event.key]) {
+        keysPressed[event.key] = true
+        endCurrentEvent()
+      }
+      return
+    }
+  }
+
+  // Manejo de opciones de evento normal con teclado numérico
+  if (showEventWindow.value && !showResultWindow.value && !isShopMode.value) {
+    const numberKey = parseInt(event.key, 10)
+    if (!isNaN(numberKey) && numberKey > 0 && numberKey <= eventData.value.options.length) {
+      handleSelectOption(numberKey - 1)
+      return
+    }
+  }
+
   // Detectar barra espaciadora para interacción PRIMERO
   if (event.key === ' ' && !keysPressed[' ']) {
     keysPressed[' '] = true
@@ -332,8 +359,9 @@ function handleKeyDown(event) {
     return // Evitar procesarla como otra tecla
   }
 
-  if (event.key in keysPressed) {
-    keysPressed[event.key] = true
+  const mappedKey = keyMap[event.key] || event.key
+  if (mappedKey in keysPressed) {
+    keysPressed[mappedKey] = true
   }
 }
 
@@ -341,8 +369,9 @@ function handleKeyDown(event) {
  * Maneja la liberación de teclas
  */
 function handleKeyUp(event) {
-  if (event.key in keysPressed) {
-    keysPressed[event.key] = false
+  const mappedKey = keyMap[event.key] || event.key
+  if (mappedKey in keysPressed) {
+    keysPressed[mappedKey] = false
   }
 }
 
@@ -440,7 +469,7 @@ function handleCloseResult() {
  * Actualiza la posición del barco basado en las teclas presionadas
  */
 function updateShipPosition() {
-  if (!ship) return
+  if (!ship || showEventWindow.value) return
 
   let newX = ship.x
   let newY = ship.y
