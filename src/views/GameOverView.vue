@@ -50,6 +50,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/gameStore.js'
 import { usePlayerStore } from '@/stores/playerStore.js'
+import { useDeckStore } from '@/stores/deckStore.js'
 import Button from '@/components/shared/Button.vue'
 
 /**
@@ -60,6 +61,7 @@ import Button from '@/components/shared/Button.vue'
 const router      = useRouter()
 const gameStore   = useGameStore()
 const playerStore = usePlayerStore()
+const deckStore   = useDeckStore()
 
 /**
  * @description Summary stats from the current (ended) run.
@@ -76,7 +78,11 @@ const stats = computed(() => ({
  * @returns {void}
  */
 function onRetry() {
+  // Reset all stores to their initial state
+  playerStore.reset()
   gameStore.startNewRun(gameStore.chosenArchetype ?? 'pirata')
+  deckStore.reset()
+  
   router.push({ name: 'deck-select' })
 }
 
@@ -85,7 +91,11 @@ function onRetry() {
  * @returns {void}
  */
 function onMenu() {
+  // Reset all stores to their initial state
+  playerStore.reset()
   gameStore.startNewRun(gameStore.chosenArchetype ?? 'pirata')
+  deckStore.reset()
+  
   router.push({ name: 'menu' })
 }
 </script>
