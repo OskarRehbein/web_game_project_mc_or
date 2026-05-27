@@ -109,6 +109,12 @@ const defeatedBossNames = computed(() => {
 })
 
 function playAgain() {
+  // Reset all stores to their initial state
+  playerStore.reset()
+  gameStore.startNewRun()
+  deckStore.reset()
+  
+  // Navigate back to main menu
   router.push('/')
 }
 </script>
