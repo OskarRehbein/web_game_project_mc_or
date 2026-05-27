@@ -18,7 +18,20 @@
       <div class="map-hud__top-right">
         <GoldCounter />
       </div>
+      <div class="map-hud__bottom-left">
+        <button class="deck-toggle-btn" @click="showDeckPanel = !showDeckPanel">
+          Ver Mazo
+        </button>
+      </div>
     </div>
+
+    <!-- Panel lateral del mazo -->
+    <aside :class="['deck-panel', { 'deck-panel--open': showDeckPanel }]">
+      <button class="deck-panel__close" @click="showDeckPanel = false">✕</button>
+      <div class="deck-panel__content">
+        <DeckViewer />
+      </div>
+    </aside>
 
     <!-- Ventana de eventos -->
     <EventWindow
@@ -53,6 +66,7 @@ import { generateShopCatalog } from '@/engine/simulation/ShopSystem.js'
 import EventWindow from '@/components/EventWindow.vue'
 import GoldCounter from '@/components/hud/GoldCounter.vue'
 import HealthBar from '@/components/hud/HealthBar.vue'
+import DeckViewer from '@/components/cards/DeckViewer.vue'
 import { useGameStore } from '@/stores/gameStore.js'
 import { usePlayerStore } from '@/stores/playerStore.js'
 import { useDeckStore } from '@/stores/deckStore.js'
@@ -85,6 +99,9 @@ const resultData = ref({
 // Estado de tienda
 const isShopMode = ref(false)
 const shopCatalog = ref([])
+
+// Panel de mazo
+const showDeckPanel = ref(false)
 
 // Entidades del mapa
 let islands = []
@@ -806,5 +823,81 @@ onUnmounted(() => {
   top: 5%;
   right: 5%;
   pointer-events: auto; /* So you could hover or click tooltips if added */
+}
+
+.map-hud__bottom-left {
+  position: absolute;
+  bottom: 5%;
+  left: 5%;
+  pointer-events: auto;
+}
+
+.deck-toggle-btn {
+  background: rgba(43, 94, 140, 0.85);
+  color: #fff;
+  border: 1px solid rgba(126, 176, 222, 0.5);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.deck-toggle-btn:hover {
+  background: rgba(56, 122, 180, 0.95);
+  transform: translateY(-2px);
+}
+
+.deck-panel {
+  position: absolute;
+  top: 0;
+  left: -400px;
+  width: 360px;
+  height: 100%;
+  background: rgba(10, 20, 36, 0.95);
+  border-right: 2px solid rgba(74, 127, 165, 0.6);
+  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50; /* Above HUD, below modals usually */
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.deck-panel--open {
+  left: 0;
+}
+
+.deck-panel__close {
+  align-self: flex-end;
+  background: transparent;
+  color: #a0c4e8;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 12px 16px;
+  line-height: 1;
+}
+
+.deck-panel__close:hover {
+  color: #fff;
+}
+
+.deck-panel__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 20px;
+}
+
+/* Custom scrollbar for deck panel */
+.deck-panel__content::-webkit-scrollbar {
+  width: 6px;
+}
+.deck-panel__content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.deck-panel__content::-webkit-scrollbar-thumb {
+  background: rgba(74, 127, 165, 0.5);
+  border-radius: 3px;
 }
 </style>

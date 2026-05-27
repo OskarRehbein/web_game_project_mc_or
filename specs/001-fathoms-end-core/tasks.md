@@ -312,7 +312,7 @@ T068       T069                  ← Motor: T068 requiere T064+T066 ✓; T069 re
 **Objetivo**: Integración visual completa, contador de oro en HUD, verificación de cobertura 100% y Docker listo.
 
 - [x] T059 [P] Implementar `GoldCounter.vue` (muestra `playerStore.gold` reactivo con icono de moneda) e integrarlo en `CombatView.vue` y `MapView.vue` como parte del HUD en `src/components/hud/GoldCounter.vue`
-- [ ] T060 [P] Integrar `DeckViewer.vue` en `MapView.vue` como panel lateral colapsable (disponible fuera del combate, FR-011) activado por botón "Ver Mazo" en `src/views/MapView.vue`
+- [x] T060 [P] Integrar `DeckViewer.vue` en `MapView.vue` como panel lateral colapsable (disponible fuera del combate, FR-011) activado por botón "Ver Mazo" en `src/views/MapView.vue`
 - [ ] T061 Ejecutar `pnpm test --coverage` y verificar que todos los módulos en `src/engine/` tienen cobertura de tests en flujos normales y casos límite según plan.md sección 12 (SC-005); corregir cualquier módulo sin cobertura
 - [ ] T062 Verificar que la imagen Docker se construye con `docker build -t fathoms-end .` y el servidor Nginx sirve la app correctamente en menos de 2 minutos en entorno limpio (SC-008)
 
