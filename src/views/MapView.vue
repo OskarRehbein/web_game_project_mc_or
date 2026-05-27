@@ -116,7 +116,7 @@ function initializeIslands() {
   } else if (gameStore.isBossGate) {
     options = generateBossGateOptions(islandsData, gameStore.bossIslandsDefeated)
   } else {
-    options = generateIslandOptions(islandsData, 3, null, Math.random)
+    options = generateIslandOptions(islandsData, 2, null, Math.random)
   }
 
   // helper: distance between two points

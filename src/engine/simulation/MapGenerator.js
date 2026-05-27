@@ -37,13 +37,27 @@ export function generateIslandOptions(bank, count = 2, previousIslandId = null, 
     return []
   }
 
-  // Sample with replacement if needed
-  const result = []
-  const poolLength = filteredPool.length
+  // Shuffle the pool using Fisher-Yates
+  const pool = [...filteredPool]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    const tmp = pool[i]
+    pool[i] = pool[j]
+    pool[j] = tmp
+  }
 
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(rng() * poolLength)
-    result.push(filteredPool[randomIndex])
+  const result = []
+  
+  // Take as many unique options as possible to avoid duplicates
+  const uniqueCount = Math.min(count, pool.length)
+  for (let i = 0; i < uniqueCount; i++) {
+    result.push(pool[i])
+  }
+
+  // Sample with replacement ONLY if we still need more options to fill `count`
+  while (result.length < count) {
+    const randomIndex = Math.floor(rng() * pool.length)
+    result.push(pool[randomIndex])
   }
 
   return result

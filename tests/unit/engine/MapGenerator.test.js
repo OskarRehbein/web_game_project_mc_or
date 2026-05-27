@@ -53,7 +53,8 @@ describe('MapGenerator', () => {
       const options = generateIslandOptions(bank, 3, null, rng)
 
       expect(options).toHaveLength(3)
-      expect(options.map((island) => island.id)).toEqual(['a', 'b', 'a'])
+      expect(new Set(options.map((island) => island.id)).size).toBe(2)
+      expect(options.every((island) => ['a', 'b'].includes(island.id))).toBe(true)
     })
   })
 
