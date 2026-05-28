@@ -12,7 +12,6 @@ RUN pnpm install --frozen-lockfile
 
 # Copy only files required for a production build.
 COPY index.html vite.config.js ./
-COPY public ./public
 COPY src ./src
 RUN pnpm build
 
