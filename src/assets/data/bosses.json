@@ -2,7 +2,7 @@
   {
     "id": "crab_captain",
     "name": "Capitán Cangrejo",
-    "isMajor": false,
+    "isMajor": true,
     "hp": 900,
     "maxHp": 900,
     "spriteKey": "boss_crab_captain",
@@ -70,7 +70,7 @@
         "id": "ground_slam",
         "damage": 20,
         "telegraphDurationMs": 2200,
-        "weight": 5,
+        "weight": 10,
         "zones": [
           {
             "x": 160,

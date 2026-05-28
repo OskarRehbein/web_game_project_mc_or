@@ -102,7 +102,7 @@
         "description": "Lanza un golpe a distancia que inflige 12 de daño directo al jefe.",
         "rarity": "common",
         "effect": {
-            "directDamage": 12
+            "damage": 12
         },
         "cost": 20,
         "cooldown": 5

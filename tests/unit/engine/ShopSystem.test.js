@@ -134,5 +134,21 @@ describe('ShopSystem', () => {
             const catalog = generateShopCatalog(pool, 5, rng)
             expect(catalog.length).toBe(2)
         })
+
+        /**
+         * @goal   Puño Salado debe tratarse como drop de jefe y excluirse antes de tienda
+         * @input  pool ya filtrado por capa de UI
+         * @expect catalog no contiene card_action_salty_fist
+         */
+        it('can generate a catalog without salty fist when UI passes a filtered pool', () => {
+            const pool = [
+                { id: 'card_action_teleport', cost: 20 },
+                { id: 'card_action_heavy_strike', cost: 50 },
+                { id: 'card_action_shield', cost: 50 },
+            ]
+            const rng = () => 0
+            const catalog = generateShopCatalog(pool, 3, rng)
+            expect(catalog.some((item) => item.id === 'card_action_salty_fist')).toBe(false)
+        })
     })
 })

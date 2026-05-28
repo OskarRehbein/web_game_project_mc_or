@@ -81,6 +81,9 @@ const deckStore = useDeckStore()
 const eventById = new Map(eventsData.map((event) => [event.id, event]))
 const bossById = new Map(bossesData.map((boss) => [boss.id, boss]))
 
+/** Cartas reservadas para drops de jefe; no deben aparecer en tienda. */
+const BOSS_DROP_ONLY_CARD_IDS = new Set(['card_action_salty_fist'])
+
 // Estado de eventos
 const showEventWindow = ref(false)
 const eventData = ref({
@@ -487,7 +490,8 @@ function handleSelectOption(optionIndex) {
 
   // Evento de tienda: primera opción abre el catálogo
   if (currentEvent.biome === 'shop' && optionIndex === 0) {
-    shopCatalog.value = generateShopCatalog(cardsData, 4, Math.random)
+    const shopPool = cardsData.filter((card) => !BOSS_DROP_ONLY_CARD_IDS.has(card.id))
+    shopCatalog.value = generateShopCatalog(shopPool, 4, Math.random)
     isShopMode.value = true
     return
   }

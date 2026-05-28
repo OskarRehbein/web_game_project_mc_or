@@ -1,6 +1,9 @@
 import { createCard } from './Card.js'
 import cardsJson from '@/assets/data/cards.json'
 
+/** Cartas que solo deben obtenerse como drop de jefe, no en selección inicial. */
+const BOSS_DROP_ONLY_CARD_IDS = new Set(['card_action_salty_fist'])
+
 /**
  * Pool completo de cartas iniciales (9 cartas) cargado desde cards.json.
  * Cada entrada se valida con createCard para garantizar formato.
@@ -8,13 +11,16 @@ import cardsJson from '@/assets/data/cards.json'
  */
 export const CARD_POOL = cardsJson.map((raw) => createCard(raw.id, raw))
 
+/** Pool elegible para arquetipos iniciales (excluye drops exclusivos de jefes). */
+const STARTER_CARD_POOL = CARD_POOL.filter((card) => !BOSS_DROP_ONLY_CARD_IDS.has(card.id))
+
 /**
  * @description Devuelve todas las cartas del pool cuyo `type` coincide.
  * @param {'action'|'passive'|'utility'} type
  * @returns {import('./Card.js').Card[]}
  */
 export function getCardsByType(type) {
-  return CARD_POOL.filter((c) => c.type === type)
+  return STARTER_CARD_POOL.filter((c) => c.type === type)
 }
 
 /**

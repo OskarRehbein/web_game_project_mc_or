@@ -49,6 +49,16 @@ describe('deckStore', () => {
     })
 
     /**
+     * @goal   Puño Salado es drop exclusivo del Capitán Cangrejo y no debe salir en arquetipos
+     */
+    it('never rolls salty fist in starter archetype cards', () => {
+      const store = useDeckStore()
+      store.initWithArchetype('pirata', () => 0.999999)
+      const actionCard = store.cards.find((c) => c.type === 'action')
+      expect(actionCard?.id).not.toBe('card_action_salty_fist')
+    })
+
+    /**
      * @goal   Con un rng determinista, la composición es reproducible
      */
     it('is deterministic given a seeded rng', () => {
