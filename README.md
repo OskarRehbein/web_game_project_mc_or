@@ -26,9 +26,9 @@ El corazón del juego es su **sistema de cartas**: las recolectás explorando el
 ## 🎮 Mecánicas Principales
 
 ### 🗺️ Exploración basada en decisiones
-Al llegar a una isla, el juego presenta un evento narrativo con varias opciones. Cada opción muestra sus probabilidades y rangos de recompensa o daño **antes de que elijas**. No hay trampa oculta — pero sí hay riesgo.
+Al llegar a una isla, el juego presenta un evento narrativo con varias opciones. Cada opción da rangos de recompensa o daño **despues de que elijas**. No hay trampa oculta — pero sí hay riesgo.
 
-> *Ejemplo: "Entrar a las ruinas" — 50% botín / 50% trampa. Si caes en la trampa: 50% enfrentás al jefe del lugar, 50% recibís daño y salís con poco loot.*
+> *Ejemplo: "Entrar a las ruinas" Si caes en la trampa: 50% enfrentás al jefe del lugar, 50% recibís daño y salís con poco loot.*
 
 ### ⚔️ Combate estilo Bullet Hell
 Los jefes tienen patrones de ataque telegrafíados. El jugador se mueve, esquiva y usa cartas en el momento correcto. No hay suerte — solo lectura y reacción.
@@ -42,8 +42,8 @@ Existen tres tipos de cartas que el jugador recolecta durante la partida:
 | **Pasiva** | Alteran las estadísticas base del jugador (velocidad, daño, vida máxima). |
 | **Utilidad** | Se usan en la exploración para desbloquear nuevas opciones de decisión o mejorar las probabilidades a tu favor. |
 
-### 🌊 Eventos oceánicos
-Mientras navegás entre islas, pueden aparecer encuentros inesperados en el mar: el Kraken, tormentas, barcos enemigos o mercantes. Cada uno con sus propias decisiones.
+### 🌊 Eventos oceánicos (Aun No Implementado)
+Mientras navegás entre islas, pueden aparecer encuentros inesperados en el mar: el Kraken, tormentas, barcos enemigos o mercantes. Cada uno con sus propias decisiones. 
 
 ### 🏝️ Mapa generado por partida
 El mundo usa un pool fijo de islas diseñadas a mano que se distribuyen aleatoriamente en el mapa al inicio de cada partida. Algunas islas tienen siempre el mismo jefe — su posición en el mapa cambia, su contenido no.
@@ -79,29 +79,27 @@ El mundo usa un pool fijo de islas diseñadas a mano que se distribuyen aleatori
 
 ---
 
-## 🚀 Ejecutar el Proyecto Localmente
+## 🎮 Cómo Jugar
 
-> ⚠️ *Esta sección se completará una vez que el proyecto tenga código. Por ahora el repositorio está en fase de diseño y planificación.*
+Requisitos en el PC:
 
-```bash
-# Próximamente:
-# pnpm install
-# pnpm dev
-```
+- **Docker Desktop** instalado y corriendo.
 
----
-
-## 🐳 Ejecutar con Docker
-
-> ⚠️ *Esta sección se completará cuando el Dockerfile esté configurado.*
+Pasos:
 
 ```bash
-# Próximamente:
-# docker pull <usuario>/fathoms-end
-# docker run -p 8080:80 <usuario>/fathoms-end
+# 1. Descargar la imagen desde DockerHub
+docker pull oskarrehbein/fathoms-end:0.1.0
+
+# 2. Ejecutar el contenedor
+docker run -d -p 934:80 oskarrehbein/fathoms-end:0.1.0
+
+# 3. Verificar que el servidor responde
+curl http://localhost:934
 ```
 
-🔗 **DockerHub:** *(link disponible próximamente)*
+
+🔗 **DockerHub:** [hub.docker.com/repository/docker/oskarrehbein/fathoms-end/general](https://hub.docker.com/repository/docker/oskarrehbein/fathoms-end/general)
 
 ---
 
@@ -109,3 +107,6 @@ El mundo usa un pool fijo de islas diseñadas a mano que se distribuyen aleatori
 
 Proyecto desarrollado para la asignatura **Aplicaciones y Tecnologías Web**
 Profesor: Cristhian Aguilera | Universidad San Sebastián
+
+- **Matías Cárcamo**
+- **Oskar Rehbein**
