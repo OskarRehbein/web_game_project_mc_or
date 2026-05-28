@@ -76,34 +76,46 @@ const phaseMarkers = [0.5, 0.25]
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .boss-hp-bar__header {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  align-items: baseline;
+  font-size: 14px;
   font-weight: 700;
   color: #e8e8f0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-.boss-hp-bar__name { color: #ff6b35; }
+.boss-hp-bar__name {
+  color: #ff6b35;
+  font-size: 16px;
+}
+
+.boss-hp-bar__value {
+  font-variant-numeric: tabular-nums;
+  color: #ffd6c0;
+}
 
 .boss-hp-bar__track {
   position: relative;
-  height: 14px;
-  background: #1a1a2e;
-  border: 1px solid #555;
-  border-radius: 3px;
+  height: 18px;
+  background: #0a0a14;
+  border: 2px solid #6a3020;
+  border-radius: 4px;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .boss-hp-bar__fill {
   height: 100%;
-  background: linear-gradient(90deg, #aa1111 0%, #ee3322 100%);
+  background: linear-gradient(180deg, #ff5544 0%, #cc1818 55%, #880808 100%);
   transition: width 0.25s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .boss-hp-bar__phase-marker {
@@ -111,6 +123,7 @@ const phaseMarkers = [0.5, 0.25]
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgba(255, 255, 100, 0.7);
+  background: rgba(255, 220, 80, 0.85);
+  box-shadow: 0 0 4px rgba(255, 220, 80, 0.6);
 }
 </style>

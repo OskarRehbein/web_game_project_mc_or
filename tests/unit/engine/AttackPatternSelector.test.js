@@ -143,5 +143,44 @@ describe('AttackPatternSelector', () => {
       pickPattern(patterns, Math.random)
       expect(patterns).toEqual(original)
     })
+
+    // --- Tests de selección ponderada (T072) ---
+    const WEIGHTED = [
+      { id: 'a', telegraphDurationMs: 1000, weight: 90 },
+      { id: 'b', telegraphDurationMs: 1000, weight: 5 },
+      { id: 'c', telegraphDurationMs: 1000, weight: 5 },
+    ] // total = 100
+
+    it('weighted: rng=()=>0.0 → primer patrón (a)', () => {
+      expect(pickPattern(WEIGHTED, () => 0.0).id).toBe('a')
+    })
+
+    it('weighted: rng=()=>0.91 → segundo patrón (b)', () => {
+      // roll = 0.91 × 100 = 91 → a quita 90 → resta 1; b quita 5 → resta <0 → b
+      expect(pickPattern(WEIGHTED, () => 0.91).id).toBe('b')
+    })
+
+    it('weighted: rng=()=>0.96 → tercer patrón (c)', () => {
+      // roll = 0.96 × 100 = 96 → a quita 90 → 6; b quita 5 → 1; c quita 5 → <0 → c
+      expect(pickPattern(WEIGHTED, () => 0.96).id).toBe('c')
+    })
+
+    it('weighted: patrón sin campo weight recibe peso 1 por defecto', () => {
+      const mixed = [
+        { id: 'heavy', telegraphDurationMs: 1000, weight: 99 },
+        { id: 'light', telegraphDurationMs: 1000 }, // sin weight → peso 1
+      ]
+      // total = 100; roll = 0.995 × 100 = 99.5 → heavy quita 99 → 0.5; light quita 1 → <0 → light
+      expect(pickPattern(mixed, () => 0.995).id).toBe('light')
+    })
+
+    it('uniform: comportamiento sin weights intacto (backward compat)', () => {
+      const uniform = [
+        { id: 'x', telegraphDurationMs: 1000 },
+        { id: 'y', telegraphDurationMs: 1000 },
+      ]
+      expect(pickPattern(uniform, () => 0).id).toBe('x')
+      expect(pickPattern(uniform, () => 0.999).id).toBe('y')
+    })
   })
 })

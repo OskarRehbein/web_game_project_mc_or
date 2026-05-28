@@ -21,8 +21,18 @@
  *   3. controller.destroy()    → limpia recursos PIXI cuando el componente Vue se desmonta (FR-044)
  */
 
-import { Application, Graphics } from 'pixi.js'
+import { Application, Graphics, Assets, Sprite, AnimatedSprite, Texture, Rectangle } from 'pixi.js'
 import { getEligiblePatterns, pickPattern } from './AttackPatternSelector.js'
+import { computeMotionZone, resolveDirection } from './MotionZone.js'
+import { generateDynamicZones } from './DynamicZoneGenerator.js'
+
+// Carga todos los PNGs de src/assets/sprites/ en build time (Vite import.meta.glob).
+// Necesario para que Vite hashee los assets correctamente en producción.
+const _spriteModules = import.meta.glob('@/assets/sprites/*.png', { eager: true, import: 'default' })
+
+function _getSpriteUrl(spriteKey) {
+  return _spriteModules[`/src/assets/sprites/${spriteKey}.png`] ?? null
+}
 import { getCollisions } from './CollisionSystem.js'
 import { calculateDamage } from './DamageCalculator.js'
 
@@ -56,8 +66,8 @@ const PLAYER_W = 36
 const PLAYER_H = 36
 
 /** Tamaño del jefe en px */
-const BOSS_W = 160
-const BOSS_H = 140
+const BOSS_W = 220
+const BOSS_H = 200
 
 /** Daño base del ataque básico (FR-020b) */
 const BASIC_ATTACK_BASE_DAMAGE = 10
@@ -145,6 +155,87 @@ export async function createCombatApp(options) {
   // el click derecho funcione como ataque básico (FR-020a).
   app.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
 
+  // ─── Sprite del jefe (opcional, estático o animado) ───────────────────────────
+  // - Si boss.idleAnimation existe → spritesheet horizontal: corta N frames y usa AnimatedSprite.
+  // - Si no, intenta cargar boss.spriteKey como Sprite estático.
+  // - Si nada carga, dibujo vectorial de fallback.
+  let bossSprite = null
+  if (boss.idleAnimation?.spriteKey) {
+    const { spriteKey, frames, fps = 8 } = boss.idleAnimation
+    const sheetUrl = _getSpriteUrl(spriteKey)
+    if (sheetUrl) {
+      try {
+        const sheet = await Assets.load(sheetUrl)
+        const baseTex = sheet.source ? sheet : sheet.texture
+        const frameW = Math.floor(baseTex.width / frames)
+        const frameH = baseTex.height
+        const textures = []
+        for (let i = 0; i < frames; i++) {
+          textures.push(new Texture({
+            source: baseTex.source,
+            frame: new Rectangle(i * frameW, 0, frameW, frameH),
+          }))
+        }
+        bossSprite = new AnimatedSprite(textures)
+        bossSprite.anchor.set(0.5)
+        bossSprite.width = BOSS_W + 180     // ← mucho más grande para que se vea imponente
+        bossSprite.height = BOSS_H + 160
+        bossSprite.animationSpeed = fps / 60       // PixiJS usa fracción de tick (~60 fps)
+        bossSprite.loop = true
+        bossSprite.play()
+      } catch (err) {
+        console.warn(`[CombatEngine] No se pudo cargar el spritesheet "${spriteKey}":`, err)
+      }
+    }
+  }
+  // Fallback: si la animación no cargó (archivo ausente o error), intenta el sprite estático
+  if (!bossSprite && boss.spriteKey) {
+    const spriteUrl = _getSpriteUrl(boss.spriteKey)
+    if (spriteUrl) {
+      try {
+        const texture = await Assets.load(spriteUrl)
+        bossSprite = new Sprite(texture)
+        bossSprite.anchor.set(0.5)
+        bossSprite.width = BOSS_W + 180
+        bossSprite.height = BOSS_H + 160
+      } catch {
+        console.warn(`[CombatEngine] No se pudo cargar el sprite "${boss.spriteKey}", usando vector fallback.`)
+      }
+    }
+  }
+
+  // ─── Sprites de arena (opcionales) ──────────────────────────────────────
+  // arena_bg → cielo / fondo lejano (parte superior del canvas)
+  // arena_floor → suelo donde el jugador se mueve (parte inferior del canvas)
+  // Si están presentes se ponen como capa más baja; el gradiente vectorial queda como fallback debajo.
+  const BG_HEIGHT = 540      // ← AJUSTAR aquí alto del cielo/fondo
+  const FLOOR_Y = 540        // ← debe coincidir con BG_HEIGHT
+  const FLOOR_HEIGHT = ARENA_HEIGHT - FLOOR_Y   // alto restante para el piso
+  let arenaBgSprite = null
+  let arenaFloorSprite = null
+  const bgUrl = _getSpriteUrl('arena_bg')
+  if (bgUrl) {
+    try {
+      const tex = await Assets.load(bgUrl)
+      arenaBgSprite = new Sprite(tex)
+      arenaBgSprite.x = 0
+      arenaBgSprite.y = 0
+      arenaBgSprite.width = ARENA_WIDTH
+      arenaBgSprite.height = BG_HEIGHT
+    } catch { /* fallback al gradiente vectorial */ }
+  }
+  const floorUrl = _getSpriteUrl('arena_floor')
+  if (floorUrl) {
+    try {
+      const tex = await Assets.load(floorUrl)
+      arenaFloorSprite = new Sprite(tex)
+      arenaFloorSprite.x = 0
+      arenaFloorSprite.y = FLOOR_Y
+      arenaFloorSprite.width = ARENA_WIDTH
+      arenaFloorSprite.height = FLOOR_HEIGHT
+    } catch { /* fallback al gradiente vectorial */ }
+  }
+
   // ─── Estado del juego ──────────────────────────────────────────────────────
   const state = {
     bossHp: boss.maxHp,
@@ -167,6 +258,13 @@ export async function createCombatApp(options) {
     shieldUntil: 0,          // state.elapsed hasta el que el jugador es invulnerable
     shieldFlash: 0,          // ms restantes del flash visual al bloquear un golpe
     swingHit: false,         // último swing impactó al jefe? (melee dentro de rango)
+    cooldownTimer: 0,        // ms hasta el próximo beginTelegraph (0 = dispara inmediatamente)
+    currentDirection: null,  // dirección resuelta para patrones con motion ('ltr' | 'rtl')
+    motionBaseZone: null,    // zona original (antes de interpolación) del patrón actual
+    rockZones: [],           // zonas de roca dinámicas del ground_slam (fase 2)
+    motionDamageTimer: 0,    // ms restantes hasta el próximo tick de daño continuo (motion)
+    rockPhaseActive: false,  // true mientras se telegrafia/dispara la lluvia de rocas
+    rockPhaseTimer: 0,       // ms restantes del telegraph de las rocas antes de impactar
   }
 
   // ─── Contenedores gráficos ─────────────────────────────────────────────────
@@ -178,7 +276,17 @@ export async function createCombatApp(options) {
   const playerGfx = new Graphics()
   const swingGfx = new Graphics()
 
-  app.stage.addChild(bgGfx, floorGfx, rangeGfx, telegraphGfx, bossGfx, playerGfx, swingGfx)
+  // Orden de capas (de atrás hacia adelante):
+  //   bgGfx (gradiente fallback) → arenaBgSprite → floorGfx (elipse decorativa) → arenaFloorSprite
+  //   → rangeGfx → telegraphGfx → bossGfx (sombra) → bossSprite → playerGfx → swingGfx
+  const layers = [bgGfx]
+  if (arenaBgSprite) layers.push(arenaBgSprite)
+  layers.push(floorGfx)
+  if (arenaFloorSprite) layers.push(arenaFloorSprite)
+  layers.push(rangeGfx, telegraphGfx, bossGfx)
+  if (bossSprite) layers.push(bossSprite)
+  layers.push(playerGfx, swingGfx)
+  app.stage.addChild(...layers)
 
   // ─── Fondo con gradiente vertical y viñeta ─────────────────────────────────
   // Pixi v8 no tiene gradiente nativo: simulamos con bandas horizontales.
@@ -192,21 +300,9 @@ export async function createCombatApp(options) {
     bgGfx.rect(0, (ARENA_HEIGHT / BAND_COUNT) * i, ARENA_WIDTH, ARENA_HEIGHT / BAND_COUNT + 1).fill(color)
   }
 
-  // ─── Suelo de arena (decorativo, sin colisión) ─────────────────────────────
-  // Plataforma elíptica grande que sugiere la zona de juego.
-  floorGfx
-    .ellipse(ARENA_WIDTH / 2, ARENA_HEIGHT - 40, ARENA_WIDTH * 0.55, 90)
-    .fill({ color: COLORS.arenaFloor, alpha: 0.55 })
-  floorGfx
-    .ellipse(ARENA_WIDTH / 2, ARENA_HEIGHT - 40, ARENA_WIDTH * 0.55, 90)
-    .stroke({ color: COLORS.arenaEdgeAlt, width: 3, alpha: 0.6 })
-  // Líneas decorativas en los bordes de la arena (FR-018 estilo arcade)
-  for (let i = 0; i < 6; i++) {
-    const angle = (i / 6) * Math.PI * 2
-    const cx = ARENA_WIDTH / 2 + Math.cos(angle) * 380
-    const cy = ARENA_HEIGHT - 40 + Math.sin(angle) * 70
-    floorGfx.circle(cx, cy, 6).fill({ color: COLORS.arenaEdge, alpha: 0.35 })
-  }
+  // ─── Suelo de arena (sin decoración vectorial) ───────────────────────────
+  // Si no hay arena_floor.png, el gradiente vectorial bgGfx hace de fallback.
+  // La elipse decorativa anterior se eliminó a petición del usuario.
 
   // ─── Entrada de teclado y mouse ────────────────────────────────────────────
   function onKeyDown(e) { state.keys[e.code] = true }
@@ -312,6 +408,21 @@ export async function createCombatApp(options) {
     state.telegraphTimer = state.currentPattern.telegraphDurationMs
     state.telegraphActive = true
 
+    // Soporte de motion: zona de peligro móvil (ej. bubble_cascade)
+    if (state.currentPattern.motion) {
+      state.currentDirection = resolveDirection(state.currentPattern.directionMode ?? 'ltr', Math.random)
+      state.motionBaseZone = state.currentPattern.zones[0]
+      // La zona activa inicial es el punto de partida (progress=0)
+      state.activeZones = [
+        computeMotionZone(state.motionBaseZone, state.currentPattern.motion, state.currentDirection, 0)
+      ]
+      // Reinicia el tick de daño continuo (primer hit ocurre tras damageTickMs)
+      state.motionDamageTimer = state.currentPattern.damageTickMs ?? 350
+    } else {
+      state.currentDirection = null
+      state.motionBaseZone = null
+    }
+
     telegraphGfx.clear()
     for (const z of state.activeZones) {
       const poly = zoneToPerspectivePoly(z)
@@ -323,6 +434,9 @@ export async function createCombatApp(options) {
         .lineTo(poly[4], poly[5])
         .stroke({ color: COLORS.telegraph, width: 3, alpha: 1 })
     }
+    // NOTA: las dynamicZones (rocas) NO se generan ni se dibujan aquí.
+    // El ground_slam es secuencial: primero impacta el slam principal,
+    // luego se inicia la fase de rocas en fireAttack().
   }
 
   function fireAttack() {
@@ -336,49 +450,108 @@ export async function createCombatApp(options) {
     }
 
     // Colisión con el jugador (AABB sobre el rectángulo original, no el trapecio)
+    // Para patrones con daño continuo (motion+continuousDamage) el daño ya se aplicó
+    // durante el trayecto en el game loop — saltamos el check final para evitar doble daño.
     const playerRect = { x: state.playerX, y: state.playerY, width: PLAYER_W, height: PLAYER_H }
-    const hits = getCollisions(playerRect, state.activeZones)
     const isShielded = state.elapsed < state.shieldUntil
-    if (hits.length > 0) {
-      if (isShielded) {
-        state.shieldFlash = 280
-      } else {
-        onPlayerHit?.(state.currentPattern.damage ?? 10)
+    if (!state.currentPattern?.continuousDamage) {
+      const hits = getCollisions(playerRect, state.activeZones)
+      if (hits.length > 0) {
+        if (isShielded) {
+          state.shieldFlash = 280
+        } else {
+          onPlayerHit?.(state.currentPattern.damage ?? 10)
+        }
       }
     }
 
     // Limpia el flash tras 300 ms
     setTimeout(() => {
-      if (!state.isDestroyed) telegraphGfx.clear()
+      if (!state.isDestroyed && !state.rockPhaseActive) telegraphGfx.clear()
     }, 300)
+
+    // Fase 2 del ground_slam: si el patrón tiene dynamicZones, ahora se inicia
+    // el telegraph de las rocas (amarillo). El daño de las rocas se aplicará
+    // cuando el rockPhaseTimer expire en el game loop.
+    if (state.currentPattern?.dynamicZones) {
+      const dzSpec = {
+        ...state.currentPattern.dynamicZones,
+        candidates: state.currentPattern.rockZoneCandidates,
+      }
+      state.rockZones = generateDynamicZones(dzSpec, ARENA_WIDTH, ARENA_HEIGHT, Math.random)
+      state.rockPhaseActive = true
+      state.rockPhaseTimer = state.currentPattern.rockTelegraphMs ?? 1000
+      // Guarda el daño de roca y damage value antes de limpiar currentPattern
+      state.rockDamage = state.currentPattern.rockDamage ?? 15
+      // Dibuja los círculos de telegraph amarillo (NO 'danger' — aún no caen)
+      setTimeout(() => {
+        if (state.isDestroyed) return
+        telegraphGfx.clear()
+        for (const rz of state.rockZones) {
+          const cx = rz.x + rz.width / 2
+          const cy = rz.y + rz.height / 2
+          telegraphGfx.circle(cx, cy, rz.width / 2).fill({ color: COLORS.telegraph, alpha: 0.30 })
+          telegraphGfx.circle(cx, cy, rz.width / 2).stroke({ color: COLORS.telegraph, width: 3, alpha: 1 })
+        }
+      }, 300)
+    } else {
+      state.rockZones = []
+    }
 
     state.activeZones = []
     state.currentPattern = null
   }
 
-  /** Intervalo entre patrones de ataque (ms) */
-  const PATTERN_INTERVAL = 3000
-  let timeSinceLastAttack = PATTERN_INTERVAL
+  /**
+   * @description Resuelve la fase 2 del ground_slam: las rocas caen, hacen daño
+   *              y se limpia el telegraph. También libera el cooldown del jefe
+   *              para el siguiente patrón.
+   */
+  function resolveRockPhase() {
+    state.rockPhaseActive = false
+    telegraphGfx.clear()
+    // Flash rojo de impacto
+    for (const rz of state.rockZones) {
+      const cx = rz.x + rz.width / 2
+      const cy = rz.y + rz.height / 2
+      telegraphGfx.circle(cx, cy, rz.width / 2).fill({ color: COLORS.danger, alpha: 0.75 })
+    }
+    // Daño de las rocas
+    const playerRect = { x: state.playerX, y: state.playerY, width: PLAYER_W, height: PLAYER_H }
+    const isShielded = state.elapsed < state.shieldUntil
+    const rockHits = getCollisions(playerRect, state.rockZones)
+    if (rockHits.length > 0 && !isShielded) {
+      onPlayerHit?.(state.rockDamage ?? 15)
+    }
+    setTimeout(() => {
+      if (!state.isDestroyed) telegraphGfx.clear()
+    }, 300)
+    state.rockZones = []
+  }
 
-  // ─── Dibujo del jefe (animado) ─────────────────────────────────────────────
+  // ─── Dibujo del jefe ────────────────────────────────────────────────────────────
   function drawBoss() {
-    bossGfx.clear()
     const cx = ARENA_WIDTH / 2
-    const cy = 130 + Math.sin(state.elapsed / 600) * 6   // flotación suave
-    // Sombra proyectada en el suelo (perspectiva)
+    const cy = 130   // posición fija (sin flotación)
+    bossGfx.clear()
+    // Sombra proyectada en el suelo (siempre, con o sin sprite)
     bossGfx.ellipse(cx, ARENA_HEIGHT - 60, BOSS_W / 2 + 10, 14).fill({ color: COLORS.shadow, alpha: 0.35 })
-    // Aura externa
-    bossGfx.ellipse(cx, cy, BOSS_W / 2 + 14, BOSS_H / 2 + 10).fill({ color: COLORS.bossGlow, alpha: 0.18 })
-    // Cuerpo
-    bossGfx.ellipse(cx, cy, BOSS_W / 2, BOSS_H / 2).fill(COLORS.boss)
-    bossGfx.ellipse(cx, cy, BOSS_W / 2, BOSS_H / 2).stroke({ color: 0x4a0c0c, width: 3 })
-    // Ojos
-    bossGfx.circle(cx - 28, cy - 10, 9).fill(COLORS.bossEye)
-    bossGfx.circle(cx + 28, cy - 10, 9).fill(COLORS.bossEye)
-    bossGfx.circle(cx - 28, cy - 10, 4).fill(0x222222)
-    bossGfx.circle(cx + 28, cy - 10, 4).fill(0x222222)
-    // Boca
-    bossGfx.arc(cx, cy + 18, 22, 0.1, Math.PI - 0.1).stroke({ color: 0x222222, width: 3 })
+
+    if (bossSprite) {
+      // Posicionar el sprite con la flotación suave
+      bossSprite.x = cx
+      bossSprite.y = cy
+    } else {
+      // Fallback vectorial cuando no hay sprite cargado
+      bossGfx.ellipse(cx, cy, BOSS_W / 2 + 14, BOSS_H / 2 + 10).fill({ color: COLORS.bossGlow, alpha: 0.18 })
+      bossGfx.ellipse(cx, cy, BOSS_W / 2, BOSS_H / 2).fill(COLORS.boss)
+      bossGfx.ellipse(cx, cy, BOSS_W / 2, BOSS_H / 2).stroke({ color: 0x4a0c0c, width: 3 })
+      bossGfx.circle(cx - 28, cy - 10, 9).fill(COLORS.bossEye)
+      bossGfx.circle(cx + 28, cy - 10, 9).fill(COLORS.bossEye)
+      bossGfx.circle(cx - 28, cy - 10, 4).fill(0x222222)
+      bossGfx.circle(cx + 28, cy - 10, 4).fill(0x222222)
+      bossGfx.arc(cx, cy + 18, 22, 0.1, Math.PI - 0.1).stroke({ color: 0x222222, width: 3 })
+    }
   }
 
   // ─── Dibujo del jugador (animado) ──────────────────────────────────────────
@@ -522,13 +695,60 @@ export async function createCombatApp(options) {
     // Ciclo telegrafiado / ataque
     if (state.telegraphActive) {
       state.telegraphTimer -= dt
+
+      // Actualizar posición de zona móvil si el patrón tiene motion
+      if (state.currentPattern?.motion && state.motionBaseZone) {
+        const total = state.currentPattern.telegraphDurationMs
+        const progress = Math.min(1, 1 - state.telegraphTimer / total)
+        state.activeZones[0] = computeMotionZone(
+          state.motionBaseZone, state.currentPattern.motion, state.currentDirection, progress
+        )
+
+        // Daño continuo durante el trayecto (FR bubble_cascade)
+        const playerRect = { x: state.playerX, y: state.playerY, width: PLAYER_W, height: PLAYER_H }
+        const inZone = getCollisions(playerRect, state.activeZones).length > 0
+        if (state.currentPattern.continuousDamage) {
+          state.motionDamageTimer -= dt
+          if (inZone && state.motionDamageTimer <= 0) {
+            const isShielded = state.elapsed < state.shieldUntil
+            if (isShielded) {
+              state.shieldFlash = 200
+            } else {
+              onPlayerHit?.(state.currentPattern.damage ?? 8)
+            }
+            state.motionDamageTimer = state.currentPattern.damageTickMs ?? 350
+          }
+        }
+
+        // Redibujar zona: si está haciendo daño usar color 'danger', si no, 'telegraph'
+        const color = (state.currentPattern.continuousDamage && inZone) ? COLORS.danger : COLORS.telegraph
+        const alphaFill = (state.currentPattern.continuousDamage && inZone) ? 0.55 : 0.30
+        telegraphGfx.clear()
+        for (const z of state.activeZones) {
+          const poly = zoneToPerspectivePoly(z)
+          telegraphGfx.poly(poly).fill({ color, alpha: alphaFill })
+          telegraphGfx.poly(poly).stroke({ color, width: 2, alpha: 0.9 })
+          telegraphGfx
+            .moveTo(poly[6], poly[7])
+            .lineTo(poly[4], poly[5])
+            .stroke({ color, width: 3, alpha: 1 })
+        }
+      }
       if (state.telegraphTimer <= 0) {
         fireAttack()
-        timeSinceLastAttack = 0
+        // Cooldown dinámico: random entre boss.attackCooldown.min/max (fallback 3000 ms)
+        const cd = boss.attackCooldown ?? { min: 3000, max: 3000 }
+        state.cooldownTimer = cd.min + Math.random() * (cd.max - cd.min)
+      }
+    } else if (state.rockPhaseActive) {
+      // Fase 2 del ground_slam: el cooldown del jefe está pausado mientras caen las rocas
+      state.rockPhaseTimer -= dt
+      if (state.rockPhaseTimer <= 0) {
+        resolveRockPhase()
       }
     } else {
-      timeSinceLastAttack += dt
-      if (timeSinceLastAttack >= PATTERN_INTERVAL) {
+      state.cooldownTimer -= dt
+      if (state.cooldownTimer <= 0) {
         beginTelegraph()
       }
     }
@@ -616,6 +836,10 @@ export async function createCombatApp(options) {
       app.canvas.removeEventListener('mousemove', onMouseMove)
       app.canvas.removeEventListener('mousedown', onMouseDown)
       app.ticker.remove(gameLoop)
+      if (bossSprite) {
+        bossSprite.destroy()
+        bossSprite = null
+      }
       app.destroy(true, { children: true })
     },
   }

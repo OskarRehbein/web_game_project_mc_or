@@ -2,89 +2,128 @@
   {
     "id": "crab_captain",
     "name": "Capitán Cangrejo",
-    "isMajor": true,
-    "hp": 120,
-    "maxHp": 120,
+    "isMajor": false,
+    "hp": 900,
+    "maxHp": 900,
     "spriteKey": "boss_crab_captain",
+    "idleAnimation": {
+      "spriteKey": "boss_crab_captain_idle",
+      "frames": 4,
+      "fps": 6
+    },
+    "attackCooldown": {
+      "min": 300,
+      "max": 2000
+    },
     "attackPatterns": [
       {
-        "id": "claw_swipe",
-        "name": "Zarpazo de Pinza",
-        "telegraphDurationMs": 700,
-        "damage": 15,
-        "zones": [
-          {
-            "x": 480,
-            "y": 300,
-            "width": 200,
-            "height": 80
-          }
-        ]
-      },
-      {
-        "id": "bubble_barrage",
-        "name": "Ráfaga de Burbujas",
-        "telegraphDurationMs": 1500,
+        "id": "claw_swipe_left",
         "damage": 10,
+        "telegraphDurationMs": 700,
+        "weight": 40,
         "zones": [
           {
-            "x": 100,
+            "x": 0,
             "y": 200,
-            "width": 80,
-            "height": 80
-          },
-          {
-            "x": 400,
-            "y": 350,
-            "width": 80,
-            "height": 80
-          },
-          {
-            "x": 700,
-            "y": 250,
-            "width": 80,
-            "height": 80
-          }
-        ]
-      },
-      {
-        "id": "shell_spin",
-        "name": "Giro de Concha",
-        "telegraphDurationMs": 2000,
-        "damage": 25,
-        "zones": [
-          {
-            "x": 200,
-            "y": 180,
-            "width": 560,
+            "width": 530,
             "height": 200
           }
         ]
+      },
+      {
+        "id": "claw_swipe_right",
+        "damage": 10,
+        "telegraphDurationMs": 700,
+        "weight": 40,
+        "zones": [
+          {
+            "x": 430,
+            "y": 200,
+            "width": 530,
+            "height": 200
+          }
+        ]
+      },
+      {
+        "id": "bubble_cascade",
+        "damage": 8,
+        "telegraphDurationMs": 2800,
+        "weight": 15,
+        "zones": [
+          {
+            "x": 0,
+            "y": 150,
+            "width": 150,
+            "height": 300
+          }
+        ],
+        "motion": {
+          "fromX": 0,
+          "toX": 810,
+          "durationMs": 2800
+        },
+        "directionMode": "random",
+        "continuousDamage": true,
+        "damageTickMs": 350
+      },
+      {
+        "id": "ground_slam",
+        "damage": 20,
+        "telegraphDurationMs": 2200,
+        "weight": 5,
+        "zones": [
+          {
+            "x": 160,
+            "y": 300,
+            "width": 640,
+            "height": 180
+          }
+        ],
+        "rockDamage": 15,
+        "rockZoneCandidates": [
+          {
+            "x": 100,
+            "y": 150
+          },
+          {
+            "x": 300,
+            "y": 420
+          },
+          {
+            "x": 500,
+            "y": 160
+          },
+          {
+            "x": 700,
+            "y": 400
+          },
+          {
+            "x": 180,
+            "y": 350
+          },
+          {
+            "x": 600,
+            "y": 300
+          },
+          {
+            "x": 400,
+            "y": 200
+          },
+          {
+            "x": 820,
+            "y": 160
+          }
+        ],
+        "dynamicZones": {
+          "count": 4,
+          "mode": "candidates",
+          "zoneSize": 100
+        }
       }
     ],
     "lootPool": [
       {
-        "id": "card_action_briny_fist",
-        "name": "Puño Salado",
-        "type": "action",
-        "rarity": "common",
-        "description": "Lanza un golpe empapado que hace 12 de daño.",
-        "effect": {
-          "damage": 12
-        },
-        "cooldown": 3,
-        "cost": 0
-      },
-      {
-        "id": "card_passive_shell_shield",
-        "name": "Escudo de Concha",
-        "type": "passive",
-        "rarity": "common",
-        "description": "La concha te otorga +15 de vida máxima.",
-        "effect": {
-          "flatHp": 15
-        },
-        "cost": 0
+        "cardId": "card_action_salty_fist"
       }
     ]
   }

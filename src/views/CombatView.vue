@@ -351,18 +351,25 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 14px 18px 20px 18px;
 }
 
 .combat-view__hud-top {
   width: 100%;
+  background: linear-gradient(180deg, rgba(5,13,26,0.85) 0%, rgba(5,13,26,0.55) 70%, rgba(5,13,26,0) 100%);
+  padding: 10px 14px 18px 14px;
+  margin: -14px -18px 0 -18px;
+  border-bottom: 1px solid rgba(255, 107, 53, 0.25);
 }
 
 .combat-view__hud-bottom {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  background: linear-gradient(0deg, rgba(5,13,26,0.85) 0%, rgba(5,13,26,0.45) 65%, rgba(5,13,26,0) 100%);
+  padding: 24px 14px 14px 14px;
+  margin: 0 -18px -20px -18px;
 }
 
 .combat-view__hp-block {
@@ -382,6 +389,8 @@ onUnmounted(() => {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(4px);
+  flex-shrink: 0;
+  max-width: 60%;
 }
 
 .hotbar-slot {
@@ -455,15 +464,21 @@ onUnmounted(() => {
 .hotbar-empty {
   display: flex;
   align-items: center;
-  padding: 0 14px;
-  color: #88aacc;
+  padding: 10px 16px;
+  color: #cce4ff;
   font-size: 12px;
   font-style: italic;
+  white-space: nowrap;
+  line-height: 1.3;
+  height: 84px;
+  border-radius: 8px;
+  background: rgba(5, 13, 26, 0.55);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
 }
 
 .combat-view__debuffs {
   position: absolute;
-  top: 50px;
+  top: 60px;
   left: 14px;
   display: flex;
   gap: 6px;
@@ -480,17 +495,19 @@ onUnmounted(() => {
 
 .combat-view__controls-hint {
   position: absolute;
-  top: 50px;
+  top: 60px;
   right: 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   color: #aabbcc;
   font-size: 11px;
-  background: rgba(5, 13, 26, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(5, 13, 26, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 8px 12px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
 }
 
 .combat-view__controls-hint kbd {

@@ -37,7 +37,8 @@ export function getEligiblePatterns(patterns, bossHp, bossMaxHp) {
 /**
  * @description Randomly selects one pattern from the eligible list using the
  *              injected `rng` function (allows deterministic tests).
- *              Selection: `patterns[Math.floor(rng() * patterns.length)]`
+ *              - If patterns carry a numeric `weight` field → weighted selection.
+ *              - If no pattern has `weight` → uniform selection (backwards-compatible).
  * @param {AttackPattern[]} eligible - Non-empty array of eligible attack patterns
  * @param {() => number}    rng      - Random number generator returning [0, 1)
  * @returns {AttackPattern} The selected attack pattern
@@ -47,6 +48,21 @@ export function pickPattern(eligible, rng) {
   if (eligible.length === 0) {
     throw new Error('No eligible patterns available for the boss at current HP')
   }
+
+  // Weighted selection when at least one pattern carries a `weight` field
+  const hasWeights = eligible.some((p) => typeof p.weight === 'number')
+  if (hasWeights) {
+    const totalWeight = eligible.reduce((sum, p) => sum + (p.weight ?? 1), 0)
+    let roll = rng() * totalWeight
+    for (const pattern of eligible) {
+      roll -= pattern.weight ?? 1
+      if (roll < 0) return pattern
+    }
+    // Floating-point safety net — return last pattern
+    return eligible[eligible.length - 1]
+  }
+
+  // Uniform selection (original behaviour)
   const index = Math.floor(rng() * eligible.length)
   return eligible[index]
 }
