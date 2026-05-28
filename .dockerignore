@@ -10,19 +10,24 @@ specs
 node_modules
 dist
 coverage
+.vitest
 
 # Ignore files
 .dockerignore
 .eslintignore
 .prettierignore
 
-# Config files not needed at runtime
-vite.config.js
+# Dev/test config not needed for Docker build context
 vitest.config.js
 eslint.config.js
+tests
 *.md
 *.log
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Editor/tooling
+.vscode
+.specify
