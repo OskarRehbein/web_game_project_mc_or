@@ -66,8 +66,8 @@ const PLAYER_W = 36
 const PLAYER_H = 36
 
 /** Tamaño del jefe en px */
-const BOSS_W = 220
-const BOSS_H = 200
+const BOSS_W = 800
+const BOSS_H = 780
 
 /** Daño base del ataque básico (FR-020b) */
 const BASIC_ATTACK_BASE_DAMAGE = 10

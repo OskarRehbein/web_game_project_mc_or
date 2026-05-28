@@ -9,7 +9,7 @@
     "idleAnimation": {
       "spriteKey": "boss_crab_captain_idle",
       "frames": 4,
-      "fps": 6
+      "fps": 3
     },
     "attackCooldown": {
       "min": 300,
