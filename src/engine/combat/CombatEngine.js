@@ -66,8 +66,8 @@ const PLAYER_W = 36
 const PLAYER_H = 36
 
 /** Tamaño del jefe en px */
-const BOSS_W = 800
-const BOSS_H = 780
+const BOSS_W = 700
+const BOSS_H = 660
 
 /** Daño base del ataque básico (FR-020b) */
 const BASIC_ATTACK_BASE_DAMAGE = 10
@@ -442,6 +442,67 @@ export async function createCombatApp(options) {
   function fireAttack() {
     state.telegraphActive = false
     telegraphGfx.clear()
+
+    // Cambia la animación del boss al iniciar el ataque
+    if (state.currentPattern?.attackAnimation) {
+      const { spriteKey, frames, fps = 8 } = state.currentPattern.attackAnimation;
+      const sheetUrl = _getSpriteUrl(spriteKey);
+      if (sheetUrl) {
+        Assets.load(sheetUrl).then(sheet => {
+          const baseTex = sheet.source ? sheet : sheet.texture;
+          const frameW = Math.floor(baseTex.width / frames);
+          const frameH = baseTex.height;
+          const textures = [];
+          for (let i = 0; i < frames; i++) {
+            textures.push(new Texture({
+              source: baseTex.source,
+              frame: new Rectangle(i * frameW, 0, frameW, frameH),
+            }));
+          }
+          // Quita el sprite anterior del stage si existe
+          if (bossSprite && bossSprite.parent) bossSprite.parent.removeChild(bossSprite);
+          bossSprite = new AnimatedSprite(textures);
+          bossSprite.anchor.set(0.5);
+          bossSprite.width = BOSS_W - 200;
+          bossSprite.height = BOSS_H - 200;
+          bossSprite.animationSpeed = fps / 60;
+          bossSprite.loop = false; // Solo una vez el ataque
+          bossSprite.play();
+          // Cuando termina la animación, vuelve a idle
+          bossSprite.onComplete = () => {
+            // Vuelve a la animación idle
+            if (boss.idleAnimation?.spriteKey) {
+              const { spriteKey, frames, fps = 8 } = boss.idleAnimation;
+              const idleUrl = _getSpriteUrl(spriteKey);
+              if (idleUrl) {
+                Assets.load(idleUrl).then(idleSheet => {
+                  const baseTex = idleSheet.source ? idleSheet : idleSheet.texture;
+                  const frameW = Math.floor(baseTex.width / frames);
+                  const frameH = baseTex.height;
+                  const textures = [];
+                  for (let i = 0; i < frames; i++) {
+                    textures.push(new Texture({
+                      source: baseTex.source,
+                      frame: new Rectangle(i * frameW, 0, frameW, frameH),
+                    }));
+                  }
+                  if (bossSprite && bossSprite.parent) bossSprite.parent.removeChild(bossSprite);
+                  bossSprite = new AnimatedSprite(textures);
+                  bossSprite.anchor.set(0.5);
+                  bossSprite.width = BOSS_W + 180;
+                  bossSprite.height = BOSS_H + 160;
+                  bossSprite.animationSpeed = fps / 60;
+                  bossSprite.loop = true;
+                  bossSprite.play();
+                  app.stage.addChild(bossSprite);
+                });
+              }
+            }
+          };
+          app.stage.addChild(bossSprite);
+        });
+      }
+    }
 
     // Flash de peligro con la misma perspectiva
     for (const z of state.activeZones) {

@@ -21,6 +21,12 @@
         "damage": 10,
         "telegraphDurationMs": 700,
         "weight": 40,
+        "spriteKey": "boss_crab_captain_left_swipe_idle",
+        "attackAnimation": {
+          "spriteKey": "boss_crab_captain_left_swipe_idle",
+          "frames": 4,
+          "fps": 10
+        },
         "zones": [
           {
             "x": 0,
@@ -35,6 +41,11 @@
         "damage": 10,
         "telegraphDurationMs": 700,
         "weight": 40,
+        "attackAnimation": {
+          "spriteKey": "boss_crab_captain_right_swipe_idle",
+          "frames": 4,
+          "fps": 10
+        },
         "zones": [
           {
             "x": 430,
@@ -69,14 +80,19 @@
       {
         "id": "ground_slam",
         "damage": 20,
-        "telegraphDurationMs": 2200,
-        "weight": 10,
+        "telegraphDurationMs": 1200,
+        "weight": 15,
+        "attackAnimation": {
+          "spriteKey": "boss_crab_captain_ground_slam_idle",
+          "frames": 4,
+          "fps": 8
+        },
         "zones": [
           {
             "x": 160,
-            "y": 300,
+            "y": 230,
             "width": 640,
-            "height": 180
+            "height": 200
           }
         ],
         "rockDamage": 15,
