@@ -71,6 +71,27 @@ import { useGameStore } from '@/stores/gameStore.js'
 import { usePlayerStore } from '@/stores/playerStore.js'
 import { useDeckStore } from '@/stores/deckStore.js'
 
+// Load island PNGs via Vite at build time
+const _islandSprites = import.meta.glob(
+  '@/assets/sprites/map/island_*.png',
+  { eager: true, import: 'default' }
+)
+
+// Pre-cache as HTMLImageElement so drawImage() works synchronously
+const islandImageCache = {}
+for (const key of ['forest', 'desert', 'rock', 'boss', 'shop', 'final']) {
+  const url = _islandSprites[`/src/assets/sprites/map/island_${key}.png`]
+  if (url) {
+    const img = new Image()
+    img.src = url
+    islandImageCache[key] = img
+  }
+}
+
+// Tracks the semantic type (regular/boss/shop/final) per island id,
+// because Island.js only stores the visual type (forest/desert/rock)
+const islandSemanticTypeMap = new Map()
+
 // Referencias
 const mapCanvas = ref(null)
 const router = useRouter()
@@ -222,6 +243,7 @@ function initializeIslands() {
         interactionRadius: 80,
       })
     )
+    islandSemanticTypeMap.set(opt.id, opt.type)
   }
 
   console.warn('Islas inicializadas (desde assets):', islands)
@@ -241,6 +263,7 @@ function initializeShip() {
 
 function resetExplorationMap() {
   islands = []
+  islandSemanticTypeMap.clear() // ← add this
   currentIslandInRange = null
   activeEvent = null
   keysPressed = {
@@ -582,35 +605,43 @@ function drawMap() {
   currentIslandInRange = null
 
   // Dibujar círculos de interacción primero (detrás)
-  islands.forEach((island) => {
-    if (ship && island.isInInteractionZone(ship.x, ship.y)) {
-      currentIslandInRange = island // Rastrear isla en rango
-      const color = island.getColor()
-      ctx.fillStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.15)`
-      ctx.beginPath()
-      ctx.arc(island.x, island.y, island.interactionRadius, 0, Math.PI * 2)
-      ctx.fill()
+islands.forEach((island) => {
+  const semantic = islandSemanticTypeMap.get(island.id)
+  const imageKey = (semantic === 'boss' || semantic === 'shop' || semantic === 'final')
+    ? semantic
+    : island.type // 'forest' | 'desert' | 'rock'
 
-      // Borde del círculo de interacción
-      ctx.strokeStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.3)`
-      ctx.lineWidth = 1
-      ctx.stroke()
-    }
-  })
+  const img = islandImageCache[imageKey]
 
-  // Dibujar islas
-  islands.forEach((island) => {
+  if (img && img.complete && img.naturalWidth > 0) {
+    const size = island.radius * 3.5
+    ctx.drawImage(img, island.x - size / 2, island.y - size / 2, size, size)
+  } else {
+    // Fallback to circle while image loads or if PNG is missing
     const color = island.getColor()
     ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`
     ctx.beginPath()
     ctx.arc(island.x, island.y, island.radius, 0, Math.PI * 2)
     ctx.fill()
-
-    // Borde de la isla
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
     ctx.lineWidth = 2
     ctx.stroke()
-  })
+  }
+})
+
+  // // Dibujar islas
+  // islands.forEach((island) => {
+  //   const color = island.getColor()
+  //   ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`
+  //   ctx.beginPath()
+  //   ctx.arc(island.x, island.y, island.radius, 0, Math.PI * 2)
+  //   ctx.fill()
+
+  //   // Borde de la isla
+  //   ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+  //   ctx.lineWidth = 2
+  //   ctx.stroke()
+  // })
 
   // Dibujar nombres de islas debajo de cada punto
   if (islands.length > 0) {
