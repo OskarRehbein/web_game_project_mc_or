@@ -720,23 +720,6 @@ islands.forEach((island) => {
   }
 })
 
-// ── 3. Island name labels ─────────────────────────────────────────────────
-if (islands.length > 0) {
-  ctx.font = '14px Arial'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'top'
-  for (const island of islands) {
-    const labelY = island.y + IMAGE_SIZE / 2 + 6 // below the image
-
-    ctx.lineWidth = 3
-    ctx.strokeStyle = 'rgba(0,0,0,0.6)'
-    ctx.strokeText(island.name, island.x, labelY)
-
-    ctx.fillStyle = 'rgba(232, 215, 125, 1)'
-    ctx.fillText(island.name, island.x, labelY)
-  }
-}
-
 
 // Dibujar barco
   if (ship) {
