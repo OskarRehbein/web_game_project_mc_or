@@ -71,6 +71,76 @@ import { useGameStore } from '@/stores/gameStore.js'
 import { usePlayerStore } from '@/stores/playerStore.js'
 import { useDeckStore } from '@/stores/deckStore.js'
 
+// Load island PNGs via Vite at build time
+const _islandSprites = import.meta.glob(
+  '@/assets/sprites/map/island_*.png',
+  { eager: true, import: 'default' }
+)
+
+// Pre-cache as HTMLImageElement so drawImage() works synchronously
+const islandImageCache = {}
+for (const key of ['forest', 'desert', 'rock', 'boss', 'shop', 'final']) {
+  const url = _islandSprites[`/src/assets/sprites/map/island_${key}.png`]
+  if (url) {
+    const img = new Image()
+    img.src = url
+    islandImageCache[key] = img
+  }
+}
+
+// Cargar los PNGs del barco vía Vite
+const _shipSprites = import.meta.glob(
+  '@/assets/sprites/map/ship*.png',
+  { eager: true, import: 'default' }
+)
+
+// Pre-caché como HTMLImageElement
+const shipImageCache = {}
+
+// A. Cargar la imagen base (estado 'idle' o inactivo)
+const idleUrl = _shipSprites['/src/assets/sprites/map/ship.png']
+if (idleUrl) {
+  const img = new Image()
+  img.src = idleUrl
+  shipImageCache['idle'] = img
+}
+
+// B. Cargar las 8 direcciones
+const directions = ['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']
+for (const dir of directions) {
+  const url = _shipSprites[`/src/assets/sprites/map/ship_${dir}.png`]
+  if (url) {
+    const img = new Image()
+    img.src = url
+    shipImageCache[dir] = img
+  }
+}
+
+// --- CARGA DEL FONDO ANIMADO ---
+import bg1Url from '@/assets/sprites/map/ocean1.png'
+import bg2Url from '@/assets/sprites/map/ocean2.png'
+
+const bgFrame1 = new Image()
+bgFrame1.src = bg1Url
+
+const bgFrame2 = new Image()
+bgFrame2.src = bg2Url
+
+// Guardamos los frames en un arreglo para alternarlos fácilmente
+const backgroundFrames = [bgFrame1, bgFrame2]
+
+// Variables para controlar la velocidad de la animación
+const BACKGROUND_ANIMATION_SPEED = 850 // Cambia de frame cada 500 milisegundos (medio segundo)
+let lastBgFrameTime = Date.now()
+let currentBgFrameIndex = 0
+// -------------------------------
+
+
+
+// Tracks the semantic type (regular/boss/shop/final) per island id,
+// because Island.js only stores the visual type (forest/desert/rock)
+const islandSemanticTypeMap = new Map()
+
 // Referencias
 const mapCanvas = ref(null)
 const router = useRouter()
@@ -125,7 +195,7 @@ let keysPressed = {
 let currentIslandInRange = null
 let activeEvent = null
 
-const SHIP_SPEED = 3 //dejar en 1.3 // píxeles por frame
+const SHIP_SPEED = 1.4 //dejar en 1.3 // píxeles por frame
 let animationFrameId = null
 
 /**
@@ -165,7 +235,7 @@ function initializeIslands() {
   const center = { x: canvasWidth / 2, y: canvasHeight / 2 }
   const margin = 60
   const minDistanceFromShip = 160 // px minimal distance from ship center
-  const minDistanceBetweenIslands = 120
+  const minDistanceBetweenIslands = 450
 
   const placed = []
 
@@ -219,9 +289,10 @@ function initializeIslands() {
         x: pos.x,
         y: pos.y,
         radius: 25,
-        interactionRadius: 80,
+        interactionRadius: 100,
       })
     )
+    islandSemanticTypeMap.set(opt.id, opt.type)
   }
 
   console.warn('Islas inicializadas (desde assets):', islands)
@@ -241,6 +312,7 @@ function initializeShip() {
 
 function resetExplorationMap() {
   islands = []
+  islandSemanticTypeMap.clear() // ← add this
   currentIslandInRange = null
   activeEvent = null
   keysPressed = {
@@ -574,76 +646,128 @@ function drawMap() {
 
   const ctx = canvas.getContext('2d')
 
-  // Limpiar canvas con fondo oscuro
-  ctx.fillStyle = 'rgba(26, 58, 82, 1)'
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+  // --- 0. DIBUJAR FONDO DEL MAPA ANIMADO ---
+  const currentTime = Date.now()
+  
+  // Si ha pasado suficiente tiempo, avanzamos al siguiente frame
+  if (currentTime - lastBgFrameTime > BACKGROUND_ANIMATION_SPEED) {
+    // Esto alternará entre 0 y 1 constantemente
+    currentBgFrameIndex = (currentBgFrameIndex + 1) % backgroundFrames.length
+    lastBgFrameTime = currentTime
+  }
 
-  // Resetear isla en rango
+  // Seleccionamos el frame actual del arreglo
+  const currentBgImage = backgroundFrames[currentBgFrameIndex]
+
+  // Dibujamos
+  if (currentBgImage && currentBgImage.complete && currentBgImage.naturalWidth > 0) {
+    ctx.drawImage(currentBgImage, 0, 0, canvasWidth, canvasHeight)
+  } else {
+    // Fallback de color si las imágenes aún no cargan
+    ctx.fillStyle = 'rgba(26, 58, 82, 1)'
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+  }
+  // -----------------------------------------
+
+  // ── 1. Reset + detect interaction (MUST be its own loop) ──────────────────
   currentIslandInRange = null
 
-  // Dibujar círculos de interacción primero (detrás)
-  islands.forEach((island) => {
-    if (ship && island.isInInteractionZone(ship.x, ship.y)) {
-      currentIslandInRange = island // Rastrear isla en rango
-      const color = island.getColor()
-      ctx.fillStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.15)`
-      ctx.beginPath()
-      ctx.arc(island.x, island.y, island.interactionRadius, 0, Math.PI * 2)
-      ctx.fill()
+islands.forEach((island) => {
+  if (ship && island.isInInteractionZone(ship.x, ship.y)) {
+    currentIslandInRange = island
 
-      // Borde del círculo de interacción
-      ctx.strokeStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.3)`
-      ctx.lineWidth = 1
-      ctx.stroke()
-    }
-  })
+    const color = island.getColor()
+    ctx.fillStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.15)`
+    ctx.beginPath()
+    ctx.arc(island.x, island.y, island.interactionRadius, 0, Math.PI * 2)
+    ctx.fill()
 
-  // Dibujar islas
-  islands.forEach((island) => {
+    ctx.strokeStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.3)`
+    ctx.lineWidth = 1
+    ctx.stroke()
+  }
+})
+
+// ── 2. Draw island images (separate loop) ─────────────────────────────────
+const IMAGE_SIZE = 320 // px — adjust this single number to resize all islands
+
+islands.forEach((island) => {
+  const semantic = islandSemanticTypeMap.get(island.id)
+  const imageKey = (semantic === 'boss' || semantic === 'shop' || semantic === 'final')
+    ? semantic
+    : island.type // 'forest' | 'desert' | 'rock'
+
+  const img = islandImageCache[imageKey]
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(
+      img,
+      island.x - IMAGE_SIZE / 2,
+      island.y - IMAGE_SIZE / 2,
+      IMAGE_SIZE,
+      IMAGE_SIZE,
+    )
+  } else {
+    // Fallback circle while PNG loads or if file is missing
     const color = island.getColor()
     ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`
     ctx.beginPath()
     ctx.arc(island.x, island.y, island.radius, 0, Math.PI * 2)
     ctx.fill()
-
-    // Borde de la isla
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
     ctx.lineWidth = 2
     ctx.stroke()
-  })
+  }
+})
 
-  // Dibujar nombres de islas debajo de cada punto
-  if (islands.length > 0) {
-    ctx.font = '14px Arial'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'top'
-    for (const island of islands) {
-      const labelY = island.y + island.radius + 6
 
-      // Outline for readability
-      ctx.lineWidth = 3
-      ctx.strokeStyle = 'rgba(0,0,0,0.6)'
-      ctx.strokeText(island.name, island.x, labelY)
+// Dibujar barco
+  if (ship) {
+    const SHIP_IMAGE_SIZE = 128 // Ajusta al tamaño de tu sprite
 
-      // Fill text
-      ctx.fillStyle = 'rgba(232, 215, 125, 1)'
-      ctx.fillText(island.name, island.x, labelY)
+    // --- 1. Calcular dirección según las teclas ---
+    let vertical = ''
+    let horizontal = ''
+
+    if (keysPressed.ArrowUp && !keysPressed.ArrowDown) vertical = 'N'
+    if (keysPressed.ArrowDown && !keysPressed.ArrowUp) vertical = 'S'
+
+    if (keysPressed.ArrowRight && !keysPressed.ArrowLeft) horizontal = 'E'
+    if (keysPressed.ArrowLeft && !keysPressed.ArrowRight) horizontal = 'W'
+
+    const currentDirection = vertical + horizontal
+
+    // Actualizar hacia dónde mira el barco solo si se presiona una dirección válida
+    if (currentDirection !== '') {
+      ship.facing = currentDirection
+    }
+
+    // --- 2. Seleccionar la imagen del caché ---
+    // Si no encuentra la dirección (o si no hay teclas presionadas pero veníamos de idle), usa 'idle'
+    const img = shipImageCache[ship.facing] || shipImageCache['idle']
+
+    // --- 3. Dibujar ---
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(
+        img,
+        ship.x - SHIP_IMAGE_SIZE / 2,
+        ship.y - SHIP_IMAGE_SIZE / 2,
+        SHIP_IMAGE_SIZE,
+        SHIP_IMAGE_SIZE
+      )
+    } else {
+      // Fallback: Círculo de respaldo
+      ctx.fillStyle = `#${ship.color.toString(16).padStart(6, '0')}`
+      ctx.beginPath()
+      ctx.arc(ship.x, ship.y, ship.radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+      ctx.lineWidth = 2
+      ctx.stroke()
     }
   }
-
-  // Dibujar barco
-  if (ship) {
-    ctx.fillStyle = `#${ship.color.toString(16).padStart(6, '0')}`
-    ctx.beginPath()
-    ctx.arc(ship.x, ship.y, ship.radius, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Borde del barco
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
-    ctx.lineWidth = 2
-    ctx.stroke()
-  }
-
+  
   // Dibujar prompts de interacción
   islands.forEach((island) => {
     if (ship && island.isInInteractionZone(ship.x, ship.y)) {
@@ -656,7 +780,7 @@ function drawMap() {
  * Dibuja el prompt de "Interactuar" debajo de la isla (dos líneas)
  */
 function drawInteractionPrompt(ctx, island) {
-  const promptY = island.y + island.interactionRadius + 40
+  const promptY = island.y + island.interactionRadius + 20
   const line1 = 'Interactuar'
   const line2 = '(Barra espaciadora)'
   const padding = 10
