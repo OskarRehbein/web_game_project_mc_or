@@ -186,7 +186,7 @@ function initializeIslands() {
   const center = { x: canvasWidth / 2, y: canvasHeight / 2 }
   const margin = 60
   const minDistanceFromShip = 160 // px minimal distance from ship center
-  const minDistanceBetweenIslands = 120
+  const minDistanceBetweenIslands = 450
 
   const placed = []
 
@@ -240,7 +240,7 @@ function initializeIslands() {
         x: pos.x,
         y: pos.y,
         radius: 25,
-        interactionRadius: 80,
+        interactionRadius: 100,
       })
     )
     islandSemanticTypeMap.set(opt.id, opt.type)
@@ -601,10 +601,28 @@ function drawMap() {
   ctx.fillStyle = 'rgba(26, 58, 82, 1)'
   ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-  // Resetear isla en rango
-  currentIslandInRange = null
+// ── 1. Reset + detect interaction (MUST be its own loop) ──────────────────
+currentIslandInRange = null
 
-  // Dibujar círculos de interacción primero (detrás)
+islands.forEach((island) => {
+  if (ship && island.isInInteractionZone(ship.x, ship.y)) {
+    currentIslandInRange = island
+
+    const color = island.getColor()
+    ctx.fillStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.15)`
+    ctx.beginPath()
+    ctx.arc(island.x, island.y, island.interactionRadius, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.strokeStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, 0.3)`
+    ctx.lineWidth = 1
+    ctx.stroke()
+  }
+})
+
+// ── 2. Draw island images (separate loop) ─────────────────────────────────
+const IMAGE_SIZE = 320 // px — adjust this single number to resize all islands
+
 islands.forEach((island) => {
   const semantic = islandSemanticTypeMap.get(island.id)
   const imageKey = (semantic === 'boss' || semantic === 'shop' || semantic === 'final')
@@ -614,10 +632,15 @@ islands.forEach((island) => {
   const img = islandImageCache[imageKey]
 
   if (img && img.complete && img.naturalWidth > 0) {
-    const size = island.radius * 3.5
-    ctx.drawImage(img, island.x - size / 2, island.y - size / 2, size, size)
+    ctx.drawImage(
+      img,
+      island.x - IMAGE_SIZE / 2,
+      island.y - IMAGE_SIZE / 2,
+      IMAGE_SIZE,
+      IMAGE_SIZE,
+    )
   } else {
-    // Fallback to circle while image loads or if PNG is missing
+    // Fallback circle while PNG loads or if file is missing
     const color = island.getColor()
     ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`
     ctx.beginPath()
@@ -629,39 +652,22 @@ islands.forEach((island) => {
   }
 })
 
-  // // Dibujar islas
-  // islands.forEach((island) => {
-  //   const color = island.getColor()
-  //   ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`
-  //   ctx.beginPath()
-  //   ctx.arc(island.x, island.y, island.radius, 0, Math.PI * 2)
-  //   ctx.fill()
+// ── 3. Island name labels ─────────────────────────────────────────────────
+if (islands.length > 0) {
+  ctx.font = '14px Arial'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  for (const island of islands) {
+    const labelY = island.y + IMAGE_SIZE / 2 + 6 // below the image
 
-  //   // Borde de la isla
-  //   ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
-  //   ctx.lineWidth = 2
-  //   ctx.stroke()
-  // })
+    ctx.lineWidth = 3
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)'
+    ctx.strokeText(island.name, island.x, labelY)
 
-  // Dibujar nombres de islas debajo de cada punto
-  if (islands.length > 0) {
-    ctx.font = '14px Arial'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'top'
-    for (const island of islands) {
-      const labelY = island.y + island.radius + 6
-
-      // Outline for readability
-      ctx.lineWidth = 3
-      ctx.strokeStyle = 'rgba(0,0,0,0.6)'
-      ctx.strokeText(island.name, island.x, labelY)
-
-      // Fill text
-      ctx.fillStyle = 'rgba(232, 215, 125, 1)'
-      ctx.fillText(island.name, island.x, labelY)
-    }
+    ctx.fillStyle = 'rgba(232, 215, 125, 1)'
+    ctx.fillText(island.name, island.x, labelY)
   }
-
+}
   // Dibujar barco
   if (ship) {
     ctx.fillStyle = `#${ship.color.toString(16).padStart(6, '0')}`
@@ -677,7 +683,7 @@ islands.forEach((island) => {
 
   // Dibujar prompts de interacción
   islands.forEach((island) => {
-    if (ship && island.isInInteractionZone(ship.x, ship.y)) {
+    if (ship && island.isInInteractionZone(ship.x, ship.y-100)) {
       drawInteractionPrompt(ctx, island)
     }
   })
@@ -687,7 +693,7 @@ islands.forEach((island) => {
  * Dibuja el prompt de "Interactuar" debajo de la isla (dos líneas)
  */
 function drawInteractionPrompt(ctx, island) {
-  const promptY = island.y + island.interactionRadius + 40
+  const promptY = island.y + island.interactionRadius + 20
   const line1 = 'Interactuar'
   const line2 = '(Barra espaciadora)'
   const padding = 10
