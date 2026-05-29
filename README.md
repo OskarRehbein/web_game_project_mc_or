@@ -93,10 +93,9 @@ docker pull oskarrehbein/fathoms-end:0.1.0
 
 # 2. Ejecutar el contenedor
 docker run -d -p 934:80 oskarrehbein/fathoms-end:0.1.0
-
-# 3. Verificar que el servidor responde
-curl http://localhost:934
 ```
+
+3. Abre el juego en tu navegador 👉 **[http://localhost:934](http://localhost:934)**
 
 
 🔗 **DockerHub:** [hub.docker.com/repository/docker/oskarrehbein/fathoms-end/general](https://hub.docker.com/repository/docker/oskarrehbein/fathoms-end/general)
