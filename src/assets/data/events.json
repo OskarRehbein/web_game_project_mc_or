@@ -105,7 +105,7 @@
       }
     ]
   },
-  {
+{
     "id": "ev-desert-001",
     "title": "Fuerzas mayores",
     "description": "Al entrar en la isla desértica y estar bajo de recursos, decides rezar a Taln, Señor de las aguas.",
@@ -118,22 +118,18 @@
           {
             "id": "ev-desert-001-o1",
             "weight": 100,
-            "type": "subevent",
-            "hpLoss": 10,
-            "nextEventId": "ev-desert-001-followup"
+            "type": "combat",
+            "lootGain": 25
           }
         ]
       },
       {
-        "text": "Ofrecer tesoro",
+        "text": "Volver al barco",
         "outcomes": [
           {
             "id": "ev-desert-001-o2",
             "weight": 100,
-            "type": "subevent",
-            "lootLoss": 10,
-            "lootLossMode": "up_to_available",
-            "nextEventId": "ev-desert-001-followup"
+            "type": "end"
           }
         ]
       }
@@ -142,21 +138,19 @@
   {
     "id": "ev-desert-001-followup",
     "title": "Fuerzas mayores",
-    "description": "Tras hacer la ofrenda, las olas dejan un artefacto en la orilla.",
+    "description": "Tras hacer la ofrenda, puedes ver el brillo de oro en la orilla.",
     "biome": "desert",
     "allowedIslandIds": ["isla-desertica"],
     "isContinuation": true,
     "decisions": [
       {
-        "text": "Recoger objeto",
+        "text": "Recoger el oro",
         "outcomes": [
           {
             "id": "ev-desert-001-followup-o1",
             "weight": 100,
             "type": "loot",
-            "lootGain": 0,
-            "itemId": "amuleto-del-inquebrantable",
-            "itemName": "Amuleto del inquebrantable"
+            "lootGain": 25
           }
         ]
       }
@@ -291,17 +285,6 @@
     "allowedIslandIds": ["isla-bosque"],
     "decisions": [
       {
-        "text": "Tomar figura",
-        "outcomes": [
-          {
-            "id": "ev-forest-001-o1",
-            "weight": 100,
-            "type": "end",
-            "hpGain": 10
-          }
-        ]
-      },
-      {
         "text": "Tomar ofrenda",
         "outcomes": [
           {
@@ -319,9 +302,7 @@
             "id": "ev-forest-001-o3",
             "weight": 100,
             "type": "subevent",
-            "lootLoss": 20,
-            "lootLossMode": "up_to_available",
-            "nextEventId": "ev-forest-001-followup"
+            "hpGain": 30
           }
         ]
       }
@@ -394,7 +375,7 @@
         ]
       },
       {
-        "text": "Marcar el cruce y volver al barco",
+        "text": "volver al barco",
         "outcomes": [
           {
             "id": "ev-forest-002-o5",
@@ -490,13 +471,13 @@
   {
     "id": "ev-forest-002-o5-followup",
     "title": "Cruce marcado",
-    "description": "Marcas el cruce con una señal discreta y vuelves al barco. Podrás reconocerlo si regresas.",
+    "description": "Logras volver al barco sin ningun problema.",
     "biome": "forest",
     "allowedIslandIds": ["isla-bosque"],
     "isContinuation": true,
     "decisions": [
       {
-        "text": "Volver al barco",
+        "text": "cerrar",
         "outcomes": [
           {
             "id": "ev-forest-002-o5-followup-end",

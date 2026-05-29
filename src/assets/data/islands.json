@@ -15,7 +15,7 @@
     "id": "isla-desertica",
     "name": "Isla Desértica",
     "type": "regular",
-    "events": ["ev-desert-001", "ev-desert-001-followup", "ev-desert-002", "ev-desert-003"]
+    "events": ["ev-desert-001", "ev-desert-001-followup", "ev-desert-003"]
   },
   {
     "id": "isla-tienda",
