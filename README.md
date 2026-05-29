@@ -89,7 +89,7 @@ Pasos:
 
 ```bash
 # 1. Descargar la imagen desde DockerHub
-docker pull oskarrehbein/fathoms-end:0.1.0
+docker pull oskarrehbein/fathoms-end:0.1.1
 
 # 2. Ejecutar el contenedor
 docker run -d -p 934:80 oskarrehbein/fathoms-end:0.1.0
