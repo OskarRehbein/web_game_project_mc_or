@@ -92,7 +92,7 @@ Pasos:
 docker pull oskarrehbein/fathoms-end:0.1.1
 
 # 2. Ejecutar el contenedor
-docker run -d -p 80:934 oskarrehbein/fathoms-end:0.1.0
+docker run -d -p 80:934 oskarrehbein/fathoms-end:0.1.1
 ```
 
 3. Abre el juego en tu navegador 👉 **[http://localhost:80](http://localhost:80)**
