@@ -84,8 +84,8 @@
         "weight": 15,
         "attackAnimation": {
           "spriteKey": "boss_crab_captain_ground_slam_idle",
-          "frames": 4,
-          "fps": 8
+          "frames": 5,
+          "fps": 10
         },
         "zones": [
           {
