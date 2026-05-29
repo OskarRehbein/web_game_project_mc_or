@@ -88,6 +88,42 @@ for (const key of ['forest', 'desert', 'rock', 'boss', 'shop', 'final']) {
   }
 }
 
+// Cargar los PNGs del barco vía Vite
+const _shipSprites = import.meta.glob(
+  '@/assets/sprites/map/ship*.png',
+  { eager: true, import: 'default' }
+)
+
+// Pre-caché como HTMLImageElement
+const shipImageCache = {}
+
+// A. Cargar la imagen base (estado 'idle' o inactivo)
+const idleUrl = _shipSprites['/src/assets/sprites/map/ship.png']
+if (idleUrl) {
+  const img = new Image()
+  img.src = idleUrl
+  shipImageCache['idle'] = img
+}
+
+// B. Cargar las 8 direcciones
+const directions = ['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW']
+for (const dir of directions) {
+  const url = _shipSprites[`/src/assets/sprites/map/ship_${dir}.png`]
+  if (url) {
+    const img = new Image()
+    img.src = url
+    shipImageCache[dir] = img
+  }
+}
+
+// Cargar el fondo del mapa
+import mapBackgroundUrl from '@/assets/sprites/map/ocean.png'
+const mapBackgroundImage = new Image()
+mapBackgroundImage.src = mapBackgroundUrl
+
+
+
+
 // Tracks the semantic type (regular/boss/shop/final) per island id,
 // because Island.js only stores the visual type (forest/desert/rock)
 const islandSemanticTypeMap = new Map()
@@ -146,7 +182,7 @@ let keysPressed = {
 let currentIslandInRange = null
 let activeEvent = null
 
-const SHIP_SPEED = 3 //dejar en 1.3 // píxeles por frame
+const SHIP_SPEED = 1.4 //dejar en 1.3 // píxeles por frame
 let animationFrameId = null
 
 /**
@@ -597,9 +633,15 @@ function drawMap() {
 
   const ctx = canvas.getContext('2d')
 
-  // Limpiar canvas con fondo oscuro
-  ctx.fillStyle = 'rgba(26, 58, 82, 1)'
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+  // 0. Dibujar fondo del mapa
+  if (mapBackgroundImage && mapBackgroundImage.complete && mapBackgroundImage.naturalWidth > 0) {
+    // Si la imagen cargó, dibujarla ocupando todo el canvas
+    ctx.drawImage(mapBackgroundImage, 0, 0, canvasWidth, canvasHeight)
+  } else {
+    // Si la imagen aún no carga, mostrar el fondo oscuro como respaldo
+    ctx.fillStyle = 'rgba(26, 58, 82, 1)'
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+  }
 
 // ── 1. Reset + detect interaction (MUST be its own loop) ──────────────────
 currentIslandInRange = null
@@ -668,22 +710,58 @@ if (islands.length > 0) {
     ctx.fillText(island.name, island.x, labelY)
   }
 }
-  // Dibujar barco
+
+
+// Dibujar barco
   if (ship) {
-    ctx.fillStyle = `#${ship.color.toString(16).padStart(6, '0')}`
-    ctx.beginPath()
-    ctx.arc(ship.x, ship.y, ship.radius, 0, Math.PI * 2)
-    ctx.fill()
+    const SHIP_IMAGE_SIZE = 128 // Ajusta al tamaño de tu sprite
 
-    // Borde del barco
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
-    ctx.lineWidth = 2
-    ctx.stroke()
+    // --- 1. Calcular dirección según las teclas ---
+    let vertical = ''
+    let horizontal = ''
+
+    if (keysPressed.ArrowUp && !keysPressed.ArrowDown) vertical = 'N'
+    if (keysPressed.ArrowDown && !keysPressed.ArrowUp) vertical = 'S'
+
+    if (keysPressed.ArrowRight && !keysPressed.ArrowLeft) horizontal = 'E'
+    if (keysPressed.ArrowLeft && !keysPressed.ArrowRight) horizontal = 'W'
+
+    const currentDirection = vertical + horizontal
+
+    // Actualizar hacia dónde mira el barco solo si se presiona una dirección válida
+    if (currentDirection !== '') {
+      ship.facing = currentDirection
+    }
+
+    // --- 2. Seleccionar la imagen del caché ---
+    // Si no encuentra la dirección (o si no hay teclas presionadas pero veníamos de idle), usa 'idle'
+    const img = shipImageCache[ship.facing] || shipImageCache['idle']
+
+    // --- 3. Dibujar ---
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(
+        img,
+        ship.x - SHIP_IMAGE_SIZE / 2,
+        ship.y - SHIP_IMAGE_SIZE / 2,
+        SHIP_IMAGE_SIZE,
+        SHIP_IMAGE_SIZE
+      )
+    } else {
+      // Fallback: Círculo de respaldo
+      ctx.fillStyle = `#${ship.color.toString(16).padStart(6, '0')}`
+      ctx.beginPath()
+      ctx.arc(ship.x, ship.y, ship.radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
   }
-
+  
   // Dibujar prompts de interacción
   islands.forEach((island) => {
-    if (ship && island.isInInteractionZone(ship.x, ship.y-100)) {
+    if (ship && island.isInInteractionZone(ship.x, ship.y)) {
       drawInteractionPrompt(ctx, island)
     }
   })
