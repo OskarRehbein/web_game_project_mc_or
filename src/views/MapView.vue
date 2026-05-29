@@ -116,11 +116,24 @@ for (const dir of directions) {
   }
 }
 
-// Cargar el fondo del mapa
-import mapBackgroundUrl from '@/assets/sprites/map/ocean.png'
-const mapBackgroundImage = new Image()
-mapBackgroundImage.src = mapBackgroundUrl
+// --- CARGA DEL FONDO ANIMADO ---
+import bg1Url from '@/assets/sprites/map/ocean1.png'
+import bg2Url from '@/assets/sprites/map/ocean2.png'
 
+const bgFrame1 = new Image()
+bgFrame1.src = bg1Url
+
+const bgFrame2 = new Image()
+bgFrame2.src = bg2Url
+
+// Guardamos los frames en un arreglo para alternarlos fácilmente
+const backgroundFrames = [bgFrame1, bgFrame2]
+
+// Variables para controlar la velocidad de la animación
+const BACKGROUND_ANIMATION_SPEED = 850 // Cambia de frame cada 500 milisegundos (medio segundo)
+let lastBgFrameTime = Date.now()
+let currentBgFrameIndex = 0
+// -------------------------------
 
 
 
@@ -633,18 +646,31 @@ function drawMap() {
 
   const ctx = canvas.getContext('2d')
 
-  // 0. Dibujar fondo del mapa
-  if (mapBackgroundImage && mapBackgroundImage.complete && mapBackgroundImage.naturalWidth > 0) {
-    // Si la imagen cargó, dibujarla ocupando todo el canvas
-    ctx.drawImage(mapBackgroundImage, 0, 0, canvasWidth, canvasHeight)
+  // --- 0. DIBUJAR FONDO DEL MAPA ANIMADO ---
+  const currentTime = Date.now()
+  
+  // Si ha pasado suficiente tiempo, avanzamos al siguiente frame
+  if (currentTime - lastBgFrameTime > BACKGROUND_ANIMATION_SPEED) {
+    // Esto alternará entre 0 y 1 constantemente
+    currentBgFrameIndex = (currentBgFrameIndex + 1) % backgroundFrames.length
+    lastBgFrameTime = currentTime
+  }
+
+  // Seleccionamos el frame actual del arreglo
+  const currentBgImage = backgroundFrames[currentBgFrameIndex]
+
+  // Dibujamos
+  if (currentBgImage && currentBgImage.complete && currentBgImage.naturalWidth > 0) {
+    ctx.drawImage(currentBgImage, 0, 0, canvasWidth, canvasHeight)
   } else {
-    // Si la imagen aún no carga, mostrar el fondo oscuro como respaldo
+    // Fallback de color si las imágenes aún no cargan
     ctx.fillStyle = 'rgba(26, 58, 82, 1)'
     ctx.fillRect(0, 0, canvasWidth, canvasHeight)
   }
+  // -----------------------------------------
 
-// ── 1. Reset + detect interaction (MUST be its own loop) ──────────────────
-currentIslandInRange = null
+  // ── 1. Reset + detect interaction (MUST be its own loop) ──────────────────
+  currentIslandInRange = null
 
 islands.forEach((island) => {
   if (ship && island.isInInteractionZone(ship.x, ship.y)) {
