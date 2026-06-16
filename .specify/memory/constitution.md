@@ -1,50 +1,50 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Fathom's End Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Security-First API Boundaries (NON-NEGOTIABLE)
+- Todos los endpoints protegidos DEBEN exigir JWT valido.
+- Las reglas owner/admin DEBEN aplicarse en middleware reusable, no inline por controlador.
+- El rol admin es estrictamente lectura global para perfiles y runs.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Test-First Delivery
+- Toda funcionalidad de dominio (auth, profile, oracle, game runs) DEBE iniciar con tests.
+- Para cada endpoint nuevo, DEBEN existir pruebas de integracion con casos 200/4xx relevantes.
+- Ninguna tarea se considera terminada sin evidencia automatizada ejecutable.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. External API Resilience
+- OpenTDB es fuente primaria, pero el juego NUNCA debe quedar bloqueado por falla externa.
+- Fallback local de trivia es obligatorio ante timeout, error o payload invalido.
+- Cada fallback DEBE registrarse con causa y requestId para trazabilidad.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Data Integrity and Idempotence
+- Operaciones de recompensa/penalizacion del Oraculo DEBEN ser idempotentes.
+- Se DEBEN usar constraints/indices para prevenir doble aplicacion de efectos.
+- Checkpoint de run en curso DEBE respetar scope owner y no filtrar datos cruzados.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Reproducible Delivery
+- El repositorio DEBE poder levantarse via Docker Compose con frontend, backend y MongoDB.
+- CI DEBE ejecutar lint, tests y build antes de permitir publicacion de imagenes.
+- Criterios de rendimiento rubricables DEBEN medirse con script reproducible y reporte versionado.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Additional Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Stack backend oficial: Node.js + Express + Mongoose.
+- Auth MVP: register/login local con JWT 24h (sin refresh token).
+- Frontend no puede llamar OpenTDB directamente; solo API propia.
+- Requisito academico obligatorio: demostrar registro + login + autenticacion + autorizacion.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Workflow and Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Gate 1: Spec sin contradicciones en contratos y roles.
+- Gate 2: Plan alineado a spec (entidades, endpoints, seguridad, testing, despliegue).
+- Gate 3: Tasks trazables a FR/SC, con dependencias claras y pruebas asociadas.
+- Gate 4: Validacion final con demo checklist y evidencia de CI verde.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Esta constitucion prevalece sobre planes/tareas en caso de conflicto.
+- Cambios a principios requieren actualizar este archivo y documentar impacto en spec/plan/tasks.
+- Todo PR o revision interna debe verificar conformidad con los cinco principios.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-06-15 | **Last Amended**: 2026-06-15

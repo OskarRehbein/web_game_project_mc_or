@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+  title: Fathom's End Backend API
+  version: 0.2.0
+  description: Contrato MVP para Solemne 3 (funcionalidad 002).
+servers:
+  - url: http://localhost:3000
+paths:
+  /auth/register:
+    post:
+      summary: Registro local de usuario
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '409':
+          description: Email ya registrado
+  /auth/login:
+    post:
+      summary: Login local y entrega JWT de 24h
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          description: Credenciales invalidas
+  /profile/me:
+    get:
+      summary: Obtener perfil del owner autenticado
+      tags: [Profile]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Token faltante/invalido
+  /profile/upgrades:
+    patch:
+      summary: Actualizar upgrades persistentes del owner
+      tags: [Profile]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [damage, maxHp, speed]
+              properties:
+                damage:
+                  type: number
+                  minimum: 0
+                maxHp:
+                  type: number
+                  minimum: 1
+                speed:
+                  type: number
+                  minimum: 0
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permisos (owner scope)
+  /external/trivia/random:
+    get:
+      summary: Obtener pregunta normalizada para evento Oraculo
+      tags: [Oracle]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: runId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pregunta disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TriviaQuestion'
+        '401':
+          description: No autenticado
+        '404':
+          description: Run no encontrada
+  /game/oracle/answer:
+    post:
+      summary: Validar respuesta del Oraculo y aplicar efecto
+      tags: [Oracle]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [runId, questionHash, selectedAnswer]
+              properties:
+                runId:
+                  type: string
+                questionHash:
+                  type: string
+                selectedAnswer:
+                  type: string
+      responses:
+        '200':
+          description: Respuesta validada y efecto aplicado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleAnswerResult'
+        '401':
+          description: No autenticado
+        '403':
+          description: Run no pertenece al owner o admin intenta mutar
+        '409':
+          description: Pregunta ya respondida (idempotencia)
+  /admin/profiles:
+    get:
+      summary: Lectura global de perfiles (admin)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista paginada de perfiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProfileResponse'
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        '401':
+          description: No autenticado
+        '403':
+          description: Requiere rol admin
+  /admin/runs:
+    get:
+      summary: Lectura global de runs (admin)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista paginada de runs
+        '401':
+          description: No autenticado
+        '403':
+          description: Requiere rol admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthSuccess:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: string
+          example: 24h
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+              enum: [owner, admin]
+    ProfileResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+        upgrades:
+          type: object
+          properties:
+            damage:
+              type: number
+            maxHp:
+              type: number
+            speed:
+              type: number
+        updatedAt:
+          type: string
+          format: date-time
+    TriviaQuestion:
+      type: object
+      properties:
+        runId:
+          type: string
+        questionHash:
+          type: string
+        source:
+          type: string
+          enum: [opentdb, local]
+        category:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+    OracleAnswerResult:
+      type: object
+      properties:
+        runId:
+          type: string
+        questionHash:
+          type: string
+        isCorrect:
+          type: boolean
+        effect:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [legendaryReward, damagePenalty]
+            payload:
+              type: object
+        appliedAt:
+          type: string
+          format: date-time
