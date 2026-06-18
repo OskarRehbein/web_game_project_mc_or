@@ -100,7 +100,57 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 
 ---
 
-## Fase 3: Persistencia de Perfil y Control de Acceso
+## Fase 3: Docker y CI/CD - Despliegue Reproducible
+
+*Objetivo*: Dockerizar frontend + backend + MongoDB, orquestar con compose, configurar GitHub Actions para lint/test/build/push.
+
+*Prueba Independiente*: `docker compose up --build` levanta stack, endpoints responden, mongod persiste, CI pipeline verde.
+
+*Criterios de Aceptación*:
+- docker-compose.yml maneja frontend, backend, mongodb
+- Healthchecks en backend y mongodb
+- .env.example documenta variables
+- GitHub Actions lint, test, build en cada push
+- Build y push de imágenes solo en main/tags
+- README con instrucciones local/compose/DockerHub
+
+### T022-T024 Dockerfiles
+
+- [ ] T022 [P] Crear Dockerfile para backend multi-stage en `backend/Dockerfile` — builder, runtime, .dockerignore
+- [ ] T023 Crear Dockerfile para frontend multi-stage en `Dockerfile` — build Vite, nginx final, .dockerignore existente
+- [ ] T024 [P] Configurar nginx.conf (ya existe) para servir SPA y proxy /api al backend
+
+### T025-T027 Docker Compose
+
+- [ ] T025 Crear `docker-compose.yml` (o `compose.yml`) — servicios frontend, backend, mongodb, networks, volumes
+- [ ] T026 [P] Configurar healthchecks para backend (/health) y mongodb
+- [ ] T027 Crear `.env.compose` o plantilla en `docker-compose.yml` con variables seguras
+
+### T028-T030 GitHub Actions - Lint y Test
+
+- [ ] T028 [P] Crear workflow `lint-test.yml` en `.github/workflows/` — lint backend, lint frontend, test backend unit/integration, test frontend unit
+- [ ] T029 Configurar problema matcher para lint/test para visualización en UI
+- [ ] T030 [P] Agregar paso de cobertura (opcional, aspirational)
+- [ ] T030A [P] Agregar job de performance smoke para SC-002 en `.github/workflows/lint-test.yml` — medir p95 en login/perfil y fallar si supera 2s
+
+### T031-T033 GitHub Actions - Build y Push
+
+- [ ] T031 Crear workflow `build-push.yml` en `.github/workflows/` — build backend y frontend images, push a DockerHub solo si main/tags y con dependencia obligatoria `needs: lint-and-test`
+- [ ] T032 [P] Configurar secrets en GitHub (DOCKER_USERNAME, DOCKER_PASSWORD, DOCKER_REGISTRY)
+- [ ] T033 Crear tags de imagen coherentes (latest, sha, semver)
+
+### T034 Documentación README
+
+- [ ] T034 [P] Actualizar o crear `backend/README.md` con:
+  - Cómo correr localmente (npm install, .env, npm start)
+  - Cómo correr con compose
+  - Links a contrato API
+  - Cómo ejecutar tests
+  - Variables de entorno necesarias
+
+---
+
+## Fase 4: Persistencia de Perfil y Control de Acceso
 
 *Objetivo*: Implementar modelo Profile, endpoint GET /profile/me, PATCH upgrades y validación de autorización owner/admin (admin solo lectura global).
 
@@ -112,34 +162,34 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 - Tercero intenta editar → 403 Forbidden
 - Admin puede leer pero no escribir → 403 en PUT/PATCH
 
-### T022-T023 Modelos de perfil
+### T035-T036 Modelos de perfil
 
-- [ ] T022 [P] Escribir test para modelo Profile en `backend/tests/unit/models/Profile.test.js` — userId unique, upgrades con min/max validacion
-- [ ] T023 Implementar modelo Profile en `backend/src/models/Profile.js` — userId, upgrades { damage, maxHp, speed }, updatedAt, validacion
+- [ ] T035 [P] Escribir test para modelo Profile en `backend/tests/unit/models/Profile.test.js` — userId unique, upgrades con min/max validacion
+- [ ] T036 Implementar modelo Profile en `backend/src/models/Profile.js` — userId, upgrades { damage, maxHp, speed }, updatedAt, validacion
 
-### T024-T025 Middleware de autorización
+### T037-T038 Middleware de autorización
 
-- [ ] T024 Escribir test para middleware requireRole y ownerScope en `backend/tests/unit/middleware/authorization.test.js`
-- [ ] T025 [P] Implementar middleware `requireRole` en `backend/src/middleware/requireRole.js` y `ownerScope` en `backend/src/middleware/ownerScope.js`
+- [ ] T037 Escribir test para middleware requireRole y ownerScope en `backend/tests/unit/middleware/authorization.test.js`
+- [ ] T038 [P] Implementar middleware `requireRole` en `backend/src/middleware/requireRole.js` y `ownerScope` en `backend/src/middleware/ownerScope.js`
 
-### T026-T027 Endpoint GET /profile/me
+### T039-T040 Endpoint GET /profile/me
 
-- [ ] T026 Escribir test de integracion GET /profile/me en `backend/tests/integration/profile.integration.test.js` — 401 sin token, 200 con token retorna perfil owner
-- [ ] T027 Implementar ruta GET /profile/me en `backend/src/modules/profile/profile.routes.js` — usa authJwt + ownerScope
+- [ ] T039 Escribir test de integracion GET /profile/me en `backend/tests/integration/profile.integration.test.js` — 401 sin token, 200 con token retorna perfil owner
+- [ ] T040 Implementar ruta GET /profile/me en `backend/src/modules/profile/profile.routes.js` — usa authJwt + ownerScope
 
-### T028-T030 Endpoint PATCH /profile/upgrades
+### T041-T043 Endpoint PATCH /profile/upgrades
 
-- [ ] T028 Escribir test para PATCH con validacion de upgrades en `backend/tests/integration/profile.integration.test.js` — owner 200, tercero 403, admin 403
-- [ ] T029 [P] Implementar servicio de actualización upgrades en `backend/src/modules/profile/profile.service.js` — validacion min/max, retorna perfil actualizado
-- [ ] T030 Implementar ruta PATCH /profile/upgrades en `backend/src/modules/profile/profile.routes.js` — usa authJwt + ownerScope
+- [ ] T041 Escribir test para PATCH con validacion de upgrades en `backend/tests/integration/profile.integration.test.js` — owner 200, tercero 403, admin 403
+- [ ] T042 [P] Implementar servicio de actualización upgrades en `backend/src/modules/profile/profile.service.js` — validacion min/max, retorna perfil actualizado
+- [ ] T043 Implementar ruta PATCH /profile/upgrades en `backend/src/modules/profile/profile.routes.js` — usa authJwt + ownerScope
 
-### T031 Inicialización de Profile en registro
+### T044 Inicialización de Profile en registro
 
-- [ ] T031 Modificar AuthService para crear Profile automaticamente al registrar usuario en `backend/src/modules/auth/auth.service.js`
+- [ ] T044 Modificar AuthService para crear Profile automaticamente al registrar usuario en `backend/src/modules/auth/auth.service.js`
 
 ---
 
-## Fase 4: Mecánica del Oráculo - OpenTDB, Fallback y Respuestas
+## Fase 5: Mecánica del Oráculo - OpenTDB, Fallback y Respuestas
 
 *Objetivo*: Implementar normalización de trivia desde OpenTDB, fallback a JSON local, validación de respuestas con idempotencia.
 
@@ -152,56 +202,56 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 - Doble submit misma pregunta → 409 Conflict
 - Oracle aparece al menos 1 vez por run (forzado si no salió por probabilidad)
 
-### T032 Banco local de preguntas
+### T045 Banco local de preguntas
 
-- [ ] T032 Crear banco de preguntas fallback en JSON en `backend/src/data/local-question-bank.json` — 50+ preguntas con campos: question, correctAnswer, incorrectAnswers, difficulty, category
+- [ ] T045 Crear banco de preguntas fallback en JSON en `backend/src/data/local-question-bank.json` — 50+ preguntas con campos: question, correctAnswer, incorrectAnswers, difficulty, category
 
-### T033-T035 Modelos para Oráculo
+### T046-T048 Modelos para Oráculo
 
-- [ ] T033 [P] Escribir test para modelo OracleQuestion en `backend/tests/unit/models/OracleQuestion.test.js`
-- [ ] T034 [P] Implementar modelo OracleQuestion en `backend/src/models/OracleQuestion.js` — source, question, correctAnswer, incorrectAnswers, difficulty, category
-- [ ] T035 Escribir test para modelo OracleAttempt en `backend/tests/unit/models/OracleAttempt.test.js` — runId, userId, questionHash, selectedAnswer, isCorrect, unique(runId, questionHash)
+- [ ] T046 [P] Escribir test para modelo OracleQuestion en `backend/tests/unit/models/OracleQuestion.test.js`
+- [ ] T047 [P] Implementar modelo OracleQuestion en `backend/src/models/OracleQuestion.js` — source, question, correctAnswer, incorrectAnswers, difficulty, category
+- [ ] T048 Escribir test para modelo OracleAttempt en `backend/tests/unit/models/OracleAttempt.test.js` — runId, userId, questionHash, selectedAnswer, isCorrect, unique(runId, questionHash)
 
-### T036 Modelo OracleAttempt
+### T049 Modelo OracleAttempt
 
-- [ ] T036 Implementar modelo OracleAttempt en `backend/src/models/OracleAttempt.js` — con índice único (runId, questionHash)
+- [ ] T049 Implementar modelo OracleAttempt en `backend/src/models/OracleAttempt.js` — con índice único (runId, questionHash)
 
-### T037-T038 Cliente y normalizador OpenTDB (TDD)
+### T050-T051 Cliente y normalizador OpenTDB (TDD)
 
-- [ ] T037 Escribir test para OpenTDB client en `backend/tests/unit/integrations/opentdb.client.test.js` — fetch pregunta, manejo error, timeout
-- [ ] T038 [P] Implementar cliente OpenTDB en `backend/src/integrations/opentdb.client.js` — GET con timeout configurable, manejo de error
+- [ ] T050 Escribir test para OpenTDB client en `backend/tests/unit/integrations/opentdb.client.test.js` — fetch pregunta, manejo error, timeout
+- [ ] T051 [P] Implementar cliente OpenTDB en `backend/src/integrations/opentdb.client.js` — GET con timeout configurable, manejo de error
 
-### T039-T040 Normalizador de trivia
+### T052-T053 Normalizador de trivia
 
-- [ ] T039 Escribir test para normalizador en `backend/tests/unit/integrations/trivia.normalizer.test.js` — decode HTML, baraja opciones, hash deterministico
-- [ ] T040 [P] Implementar normalizador en `backend/src/integrations/trivia.normalizer.js`
+- [ ] T052 Escribir test para normalizador en `backend/tests/unit/integrations/trivia.normalizer.test.js` — decode HTML, baraja opciones, hash deterministico
+- [ ] T053 [P] Implementar normalizador en `backend/src/integrations/trivia.normalizer.js`
 
-### T041 Repositorio fallback local
+### T054 Repositorio fallback local
 
-- [ ] T041 Implementar carga de banco local en `backend/src/integrations/trivia.fallback.repository.js` — lector de JSON con selección aleatoria
-- [ ] T041A [P] Implementar trazabilidad de fallback y errores externos en `backend/src/config/logger.js` + `backend/src/modules/oracle/oracle.service.js` — campos mínimos: requestId, source, fallbackReason, errorCode, timestamp
+- [ ] T054 Implementar carga de banco local en `backend/src/integrations/trivia.fallback.repository.js` — lector de JSON con selección aleatoria
+- [ ] T054A [P] Implementar trazabilidad de fallback y errores externos en `backend/src/config/logger.js` + `backend/src/modules/oracle/oracle.service.js` — campos mínimos: requestId, source, fallbackReason, errorCode, timestamp
 
-### T042-T044 Servicio de Oráculo (TDD)
+### T055-T057 Servicio de Oráculo (TDD)
 
-- [ ] T042 Escribir test para OracleService (getQuestion) en `backend/tests/unit/modules/oracle.service.test.js` — intenta OpenTDB, fallback si falla, retorna pregunta normalizada
-- [ ] T043 [P] Escribir test para OracleService (answerQuestion) — valida respuesta, detecta doble submit (409), aplica reward/penalty
-- [ ] T044 Implementar OracleService en `backend/src/modules/oracle/oracle.service.js`
+- [ ] T055 Escribir test para OracleService (getQuestion) en `backend/tests/unit/modules/oracle.service.test.js` — intenta OpenTDB, fallback si falla, retorna pregunta normalizada
+- [ ] T056 [P] Escribir test para OracleService (answerQuestion) — valida respuesta, detecta doble submit (409), aplica reward/penalty
+- [ ] T057 Implementar OracleService en `backend/src/modules/oracle/oracle.service.js`
 
-### T045-T047 Endpoints del Oráculo
+### T058-T060 Endpoints del Oráculo
 
-- [ ] T045 Escribir test de integracion GET /external/trivia/random en `backend/tests/integration/oracle.integration.test.js` — requiere auth, retorna pregunta válida
-- [ ] T046 [P] Implementar ruta GET /external/trivia/random en `backend/src/modules/oracle/oracle.routes.js` — usa authJwt
-- [ ] T047 Escribir test para POST /game/oracle/answer en `backend/tests/integration/oracle.integration.test.js` — correcta (reward), incorrecta (penalty), doble submit (409)
+- [ ] T058 Escribir test de integracion GET /external/trivia/random en `backend/tests/integration/oracle.integration.test.js` — requiere auth, retorna pregunta válida
+- [ ] T059 [P] Implementar ruta GET /external/trivia/random en `backend/src/modules/oracle/oracle.routes.js` — usa authJwt
+- [ ] T060 Escribir test para POST /game/oracle/answer en `backend/tests/integration/oracle.integration.test.js` — correcta (reward), incorrecta (penalty), doble submit (409)
 
-### T048 Endpoint POST /game/oracle/answer
+### T061 Endpoint POST /game/oracle/answer
 
-- [ ] T048 Implementar ruta POST /game/oracle/answer en `backend/src/modules/oracle/oracle.routes.js` — usa authJwt, valida respuesta, manejo 409
-- [ ] T048A Escribir test para garantía del Oráculo por run en `backend/tests/integration/oracle-guarantee.integration.test.js` — en 100% de runs completas aparece al menos 1 vez
-- [ ] T048B [P] Implementar lógica de forzado del Oráculo con `ORACLE_FORCE_AT_STEP` en `backend/src/modules/oracle/oracle.service.js`
+- [ ] T061 Implementar ruta POST /game/oracle/answer en `backend/src/modules/oracle/oracle.routes.js` — usa authJwt, valida respuesta, manejo 409
+- [ ] T061A Escribir test para garantía del Oráculo por run en `backend/tests/integration/oracle-guarantee.integration.test.js` — en 100% de runs completas aparece al menos 1 vez
+- [ ] T061B [P] Implementar lógica de forzado del Oráculo con `ORACLE_FORCE_AT_STEP` en `backend/src/modules/oracle/oracle.service.js`
 
 ---
 
-## Fase 5: Historial de Runs y Control Administrativo (Solo Lectura)
+## Fase 6: Historial de Runs y Control Administrativo (Solo Lectura)
 
 *Objetivo*: Implementar GameRun, RewardLedger, endpoints /admin/{profiles,runs} con autorización admin de solo lectura.
 
@@ -214,39 +264,39 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 - Admin consulta `/admin/profiles` → global solo lectura
 - Admin intenta PATCH upgrade de tercero → 403
 
-### T049-T050 Modelos de historial
+### T062-T063 Modelos de historial
 
-- [ ] T049A Escribir test para modelo GameRun en `backend/tests/unit/models/GameRun.test.js` — schema, indices y validaciones minimas
-- [ ] T049 [P] Implementar modelo GameRun en `backend/src/models/GameRun.js` — userId, startedAt, endedAt, oracleGuaranteed, oracleAppeared, result, rewards
-- [ ] T050A Escribir test para modelo RewardLedger en `backend/tests/unit/models/RewardLedger.test.js` — tipos permitidos, payload y campos de auditoria
-- [ ] T050 Implementar modelo RewardLedger en `backend/src/models/RewardLedger.js` — runId, type (legendaryReward/damagePenalty), payload, appliedAt
+- [ ] T062A Escribir test para modelo GameRun en `backend/tests/unit/models/GameRun.test.js` — schema, indices y validaciones minimas
+- [ ] T062 [P] Implementar modelo GameRun en `backend/src/models/GameRun.js` — userId, startedAt, endedAt, oracleGuaranteed, oracleAppeared, result, rewards
+- [ ] T063A Escribir test para modelo RewardLedger en `backend/tests/unit/models/RewardLedger.test.js` — tipos permitidos, payload y campos de auditoria
+- [ ] T063 Implementar modelo RewardLedger en `backend/src/models/RewardLedger.js` — runId, type (legendaryReward/damagePenalty), payload, appliedAt
 
-### T051-T052 Endpoints admin lectura global
+### T064-T065 Endpoints admin lectura global
 
-- [ ] T051 Escribir test de integracion GET /admin/profiles en `backend/tests/integration/admin.integration.test.js` — admin 200 sin filtro, owner 403, tercero 403
-- [ ] T052 [P] Escribir test para GET /admin/runs — admin 200 sin filtro, owner 403
+- [ ] T064 Escribir test de integracion GET /admin/profiles en `backend/tests/integration/admin.integration.test.js` — admin 200 sin filtro, owner 403, tercero 403
+- [ ] T065 [P] Escribir test para GET /admin/runs — admin 200 sin filtro, owner 403
 
-### T053-T054 Rutas admin
+### T066-T067 Rutas admin
 
-- [ ] T053 Implementar ruta GET /admin/profiles en `backend/src/modules/admin/admin.routes.js` — requiere authJwt + requireRole('admin')
-- [ ] T054 [P] Implementar ruta GET /admin/runs en `backend/src/modules/admin/admin.routes.js`
+- [ ] T066 Implementar ruta GET /admin/profiles en `backend/src/modules/admin/admin.routes.js` — requiere authJwt + requireRole('admin')
+- [ ] T067 [P] Implementar ruta GET /admin/runs en `backend/src/modules/admin/admin.routes.js`
 
-### T055 Crear entrada GameRun al finalizar run
+### T068 Crear entrada GameRun al finalizar run
 
-- [ ] T055 Implementar lógica de cierre de run y creación GameRun en `backend/src/modules/game/game.service.js`
-- [ ] T055A Escribir test de integración para `GET /game/runs` owner-scope en `backend/tests/integration/game-runs.integration.test.js` — owner 200 solo sus runs, tercero 403
-- [ ] T055B [P] Implementar ruta `GET /game/runs` en `backend/src/modules/game/game.routes.js` — authJwt + ownerScope
-- [ ] T055C Implementar persistencia de partida en curso (checkpoint) en `backend/src/modules/game/game.service.js` — guarda estado parcial de run
-- [ ] T055D [P] Escribir test de integración para `PATCH /game/runs/:runId/checkpoint` y `GET /game/runs/:runId/resume` en `backend/tests/integration/game-checkpoint.integration.test.js`
-- [ ] T055E Implementar rutas de checkpoint en `backend/src/modules/game/game.routes.js` — guardar y recuperar partida en curso por owner
+- [ ] T068 Implementar lógica de cierre de run y creación GameRun en `backend/src/modules/game/game.service.js`
+- [ ] T068A Escribir test de integración para `GET /game/runs` owner-scope en `backend/tests/integration/game-runs.integration.test.js` — owner 200 solo sus runs, tercero 403
+- [ ] T068B [P] Implementar ruta `GET /game/runs` en `backend/src/modules/game/game.routes.js` — authJwt + ownerScope
+- [ ] T068C Implementar persistencia de partida en curso (checkpoint) en `backend/src/modules/game/game.service.js` — guarda estado parcial de run
+- [ ] T068D [P] Escribir test de integración para `PATCH /game/runs/:runId/checkpoint` y `GET /game/runs/:runId/resume` en `backend/tests/integration/game-checkpoint.integration.test.js`
+- [ ] T068E Implementar rutas de checkpoint en `backend/src/modules/game/game.routes.js` — guardar y recuperar partida en curso por owner
 
-### T056 Middleware denegación mutación admin
+### T069 Middleware denegación mutación admin
 
-- [ ] T056 Escribir test de no-regresión para denegación de mutación admin en endpoints de escritura en `backend/tests/integration/admin-write-deny.integration.test.js` — siempre 403 para admin
+- [ ] T069 Escribir test de no-regresión para denegación de mutación admin en endpoints de escritura en `backend/tests/integration/admin-write-deny.integration.test.js` — siempre 403 para admin
 
 ---
 
-## Fase 6: Integración Frontend - Pantallas de Auth, Perfil y Oráculo
+## Fase 7: Integración Frontend - Pantallas de Auth, Perfil y Oráculo
 
 *Objetivo*: Crear/adaptar pantallas Vue3 que consumen API propia (nunca OpenTDB directo), con flujo de registro, login, perfil persistente y evento Oráculo.
 
@@ -261,43 +311,43 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 - Re-login recupera perfil actualizado
 - Cero llamadas directas a OpenTDB
 
-### T057-T059 Pantalla de Registro
+### T070-T072 Pantalla de Registro
 
-- [ ] T057 Escribir test para componente RegisterForm en `tests/unit/components/RegisterForm.test.js` — input email/password, submit valida formato
-- [ ] T058 [P] Implementar componente RegisterForm.vue en `src/components/auth/RegisterForm.vue` — formulario, validación, manejo error 409 email duplicado
-- [ ] T059 Integrar RegisterForm en vista o router
+- [ ] T070 Escribir test para componente RegisterForm en `tests/unit/components/RegisterForm.test.js` — input email/password, submit valida formato
+- [ ] T071 [P] Implementar componente RegisterForm.vue en `src/components/auth/RegisterForm.vue` — formulario, validación, manejo error 409 email duplicado
+- [ ] T072 Integrar RegisterForm en vista o router
 
-### T060-T062 Pantalla de Login
+### T073-T075 Pantalla de Login
 
-- [ ] T060 Escribir test para componente LoginForm en `tests/unit/components/LoginForm.test.js` — validacion inputs, submit POST /auth/login
-- [ ] T061 [P] Implementar componente LoginForm.vue en `src/components/auth/LoginForm.vue` — formulario, persistencia token, redirección
-- [ ] T062 Integrar LoginForm en vista o router
+- [ ] T073 Escribir test para componente LoginForm en `tests/unit/components/LoginForm.test.js` — validacion inputs, submit POST /auth/login
+- [ ] T074 [P] Implementar componente LoginForm.vue en `src/components/auth/LoginForm.vue` — formulario, persistencia token, redirección
+- [ ] T075 Integrar LoginForm en vista o router
 
-### T063-T065 Servicio API frontend
+### T076-T078 Servicio API frontend
 
-- [ ] T063 [P] Crear servicio API centralizado en `src/services/api.js` — base URL, interceptors para token JWT, manejo 401
-- [ ] T064 Escribir test para api.js en `tests/unit/services/api.test.js`
-- [ ] T065 [P] Implementar metodos en api.js: register, login, getProfile, updateProfile, getTrivia, answerOracle
+- [ ] T076 [P] Crear servicio API centralizado en `src/services/api.js` — base URL, interceptors para token JWT, manejo 401
+- [ ] T077 Escribir test para api.js en `tests/unit/services/api.test.js`
+- [ ] T078 [P] Implementar metodos en api.js: register, login, getProfile, updateProfile, getTrivia, answerOracle
 
-### T066-T068 Pantalla/Componente de Perfil
+### T079-T081 Pantalla/Componente de Perfil
 
-- [ ] T066 Escribir test para componente ProfileCard en `tests/unit/components/ProfileCard.test.js` — muestra upgrades, permite editar si owner
-- [ ] T067 [P] Implementar componente ProfileCard.vue en `src/components/profile/ProfileCard.vue` — display upgrades, modal/inline edit
-- [ ] T068 Integrar ProfileCard en vista Profile existente o nueva
+- [ ] T079 Escribir test para componente ProfileCard en `tests/unit/components/ProfileCard.test.js` — muestra upgrades, permite editar si owner
+- [ ] T080 [P] Implementar componente ProfileCard.vue en `src/components/profile/ProfileCard.vue` — display upgrades, modal/inline edit
+- [ ] T081 Integrar ProfileCard en vista Profile existente o nueva
 
-### T069-T071 Evento Oráculo - Componente Pregunta
+### T082-T084 Evento Oráculo - Componente Pregunta
 
-- [ ] T069 Escribir test para componente OracleQuestion en `tests/unit/components/OracleQuestion.test.js` — carga pregunta, muestra opciones, valida respuesta
-- [ ] T070 [P] Implementar componente OracleQuestion.vue en `src/components/oracle/OracleQuestion.vue` — GET /external/trivia/random, POST answer, manejo reward/penalty
-- [ ] T071 Integrar OracleQuestion en evento Oráculo del juego (MapView o EventWindow existente)
+- [ ] T082 Escribir test para componente OracleQuestion en `tests/unit/components/OracleQuestion.test.js` — carga pregunta, muestra opciones, valida respuesta
+- [ ] T083 [P] Implementar componente OracleQuestion.vue en `src/components/oracle/OracleQuestion.vue` — GET /external/trivia/random, POST answer, manejo reward/penalty
+- [ ] T084 Integrar OracleQuestion en evento Oráculo del juego (MapView o EventWindow existente)
 
-### T072 Test: Verificar cero llamadas directas a OpenTDB
+### T085 Test: Verificar cero llamadas directas a OpenTDB
 
-- [ ] T072 [P] Escribir test de integracion en `tests/integration/oracle.no-direct-calls.test.js` — simular flujo oraculo, verificar headers/network que nunca va a opentdb.com
+- [ ] T085 [P] Escribir test de integracion en `tests/integration/oracle.no-direct-calls.test.js` — simular flujo oraculo, verificar headers/network que nunca va a opentdb.com
 
 ---
 
-## Fase 7: Mejoras de Juego y Experiencia - Backlog Expandible
+## Fase 8: Mejoras de Juego y Experiencia - Backlog Expandible
 
 *Objetivo*: Dejar registradas, priorizadas y preparadas para implementación las mejoras de juego definidas en PLANNING.md, sin cerrar aún decisiones de detalle (por ejemplo, tipo de jefe/isla específica).
 
@@ -309,73 +359,23 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 - Se prioriza primero la base de experiencia de juego antes de Docker/CI
 - Queda trazabilidad entre PLANNING.md y este tasks.md
 
-### T072A-T072C Exploración, eventos y mapa
+### T085A-T085C Exploración, eventos y mapa
 
-- [ ] T072A Crear backlog general de exploración y decisiones de viaje en `specs/002-fathoms-end-backend/backlog/gameplay-exploration.md` — marco para más islas/eventos y consecuencias sin fijar contenido final
-- [ ] T072B [P] Crear backlog general de mapa del mundo en `specs/002-fathoms-end-backend/backlog/gameplay-worldmap.md` — vista global, progresión visible y espacios para zonas por descubrir
-- [ ] T072C [P] Crear backlog general de encuentros intermedios en `specs/002-fathoms-end-backend/backlog/gameplay-encounters.md` — variedad de enemigos/encuentros entre hitos principales
+- [ ] T085A Crear backlog general de exploración y decisiones de viaje en `specs/002-fathoms-end-backend/backlog/gameplay-exploration.md` — marco para más islas/eventos y consecuencias sin fijar contenido final
+- [ ] T085B [P] Crear backlog general de mapa del mundo en `specs/002-fathoms-end-backend/backlog/gameplay-worldmap.md` — vista global, progresión visible y espacios para zonas por descubrir
+- [ ] T085C [P] Crear backlog general de encuentros intermedios en `specs/002-fathoms-end-backend/backlog/gameplay-encounters.md` — variedad de enemigos/encuentros entre hitos principales
 
-### T072D-T072F Combate, progresión y rejugabilidad
+### T085D-T085F Combate, progresión y rejugabilidad
 
-- [ ] T072D Crear backlog general de pulido de combate en `specs/002-fathoms-end-backend/backlog/combat-polish.md` — patrones, feedback de impacto y animaciones clave a definir por iteración
-- [ ] T072E [P] Crear backlog general de meta-progresión y rejugabilidad en `specs/002-fathoms-end-backend/backlog/metaprogression.md` — mejoras de largo plazo entre runs sin fijar valores finales
-- [ ] T072F [P] Crear backlog general de integración de progresión persistente en `specs/002-fathoms-end-backend/backlog/persistence-loop.md` — puente frontend/backend para guardado y continuidad entre partidas
+- [ ] T085D Crear backlog general de pulido de combate en `specs/002-fathoms-end-backend/backlog/combat-polish.md` — patrones, feedback de impacto y animaciones clave a definir por iteración
+- [ ] T085E [P] Crear backlog general de meta-progresión y rejugabilidad en `specs/002-fathoms-end-backend/backlog/metaprogression.md` — mejoras de largo plazo entre runs sin fijar valores finales
+- [ ] T085F [P] Crear backlog general de integración de progresión persistente en `specs/002-fathoms-end-backend/backlog/persistence-loop.md` — puente frontend/backend para guardado y continuidad entre partidas
 
-### T072G-T072I Identidad visual, narrativa y assets
+### T085G-T085I Identidad visual, narrativa y assets
 
-- [ ] T072G Crear backlog general de identidad visual en `specs/002-fathoms-end-backend/backlog/visual-identity.md` — lineamientos de menús, HUD y pantallas de estado
-- [ ] T072H [P] Crear backlog general de narrativa y lore en `specs/002-fathoms-end-backend/backlog/narrative-lore.md` — distribución de contexto narrativo en eventos/islas/cartas/jefes
-- [ ] T072I [P] Crear backlog general de expansión visual en `specs/002-fathoms-end-backend/backlog/assets-roadmap.md` — sprites, fondos e iconografía con estándar de calidad
-
----
-
-## Fase 8: Docker y CI/CD - Despliegue Reproducible
-
-*Objetivo*: Dockerizar frontend + backend + MongoDB, orquestar con compose, configurar GitHub Actions para lint/test/build/push.
-
-*Prueba Independiente*: `docker compose up --build` levanta stack, endpoints responden, mongod persiste, CI pipeline verde.
-
-*Criterios de Aceptación*:
-- docker-compose.yml maneja frontend, backend, mongodb
-- Healthchecks en backend y mongodb
-- .env.example documenta variables
-- GitHub Actions lint, test, build en cada push
-- Build y push de imágenes solo en main/tags
-- README con instrucciones local/compose/DockerHub
-
-### T073-T075 Dockerfiles
-
-- [ ] T073 [P] Crear Dockerfile para backend multi-stage en `backend/Dockerfile` — builder, runtime, .dockerignore
-- [ ] T074 Crear Dockerfile para frontend multi-stage en `Dockerfile` — build Vite, nginx final, .dockerignore existente
-- [ ] T075 [P] Configurar nginx.conf (ya existe) para servir SPA y proxy /api al backend
-
-### T076-T078 Docker Compose
-
-- [ ] T076 Crear `docker-compose.yml` (o `compose.yml`) — servicios frontend, backend, mongodb, networks, volumes
-- [ ] T077 [P] Configurar healthchecks para backend (/health) y mongodb
-- [ ] T078 Crear `.env.compose` o plantilla en `docker-compose.yml` con variables seguras
-
-### T079-T081 GitHub Actions - Lint y Test
-
-- [ ] T079 [P] Crear workflow `lint-test.yml` en `.github/workflows/` — lint backend, lint frontend, test backend unit/integration, test frontend unit
-- [ ] T080 Configurar problema matcher para lint/test para visualización en UI
-- [ ] T081 [P] Agregar paso de cobertura (opcional, aspirational)
-- [ ] T081A [P] Agregar job de performance smoke para SC-002 en `.github/workflows/lint-test.yml` — medir p95 en login/perfil y fallar si supera 2s
-
-### T082-T084 GitHub Actions - Build y Push
-
-- [ ] T082 Crear workflow `build-push.yml` en `.github/workflows/` — build backend y frontend images, push a DockerHub solo si main/tags y con dependencia obligatoria `needs: lint-and-test`
-- [ ] T083 [P] Configurar secrets en GitHub (DOCKER_USERNAME, DOCKER_PASSWORD, DOCKER_REGISTRY)
-- [ ] T084 Crear tags de imagen coherentes (latest, sha, semver)
-
-### T085 Documentación README
-
-- [ ] T085 [P] Actualizar o crear `backend/README.md` con:
-  - Cómo correr localmente (npm install, .env, npm start)
-  - Cómo correr con compose
-  - Links a contrato API
-  - Cómo ejecutar tests
-  - Variables de entorno necesarias
+- [ ] T085G Crear backlog general de identidad visual en `specs/002-fathoms-end-backend/backlog/visual-identity.md` — lineamientos de menús, HUD y pantallas de estado
+- [ ] T085H [P] Crear backlog general de narrativa y lore en `specs/002-fathoms-end-backend/backlog/narrative-lore.md` — distribución de contexto narrativo en eventos/islas/cartas/jefes
+- [ ] T085I [P] Crear backlog general de expansión visual en `specs/002-fathoms-end-backend/backlog/assets-roadmap.md` — sprites, fondos e iconografía con estándar de calidad
 
 ---
 
@@ -464,21 +464,21 @@ Fase 9 (Validation) ← Todas fases completadas
 
 - **T002-T005**: Setup configuración (parallelizable)
 - **T006-T008**: Dependencias y server (parallelizable después de T002)
-- **T033-T035**: Modelos Oracle (parallelizable)
-- **T037-T040**: Integraciones OpenTDB (parallelizable)
-- **T057-T062**: Componentes frontend (parallelizable)
-- **T073-T078**: Dockerfiles y Compose (parallelizable)
+- **T046-T048**: Modelos Oracle (parallelizable)
+- **T050-T053**: Integraciones OpenTDB (parallelizable)
+- **T070-T075**: Componentes frontend (parallelizable)
+- **T022-T027**: Dockerfiles y Compose (parallelizable)
 
 ### Orden de Ejecución Recomendado para MVP
 
 1. **Fase 1 completa** (T001-T010) — infraestructura base
 2. **Fase 2 completa** (T011-T021A) — autenticación funcional
-3. **Fase 3 completa** (T022-T031) — perfil y persistencia
-4. **Fase 4 completa** (T032-T048B) — oráculo con fallback
-5. **Fase 5 completa** (T049A-T056) — historial y admin
-6. **Fase 6 completa** (T057-T072) — integración UI obligatoria para cumplir FR-015 y SC-007
-7. **Fase 7 (T072A-T072I)** — backlog de mejoras de juego antes de dockerización
-8. **Fase 8 (T073-T085)** — Docker + CI/CD mínimo
+3. **Fase 3 completa** (T035-T044) — perfil y persistencia
+4. **Fase 4 completa** (T045-T061B) — oráculo con fallback
+5. **Fase 5 completa** (T062A-T069) — historial y admin
+6. **Fase 6 completa** (T070-T085) — integración UI obligatoria para cumplir FR-015 y SC-007
+7. **Fase 7 (T085A-T085I)** — backlog de mejoras de juego antes de dockerización
+8. **Fase 8 (T022-T034)** — Docker + CI/CD mínimo
 9. **Fase 9 (T086-T094A)** — validación y demo
 
 ---
@@ -490,30 +490,30 @@ Fase 9 (Validation) ← Todas fases completadas
 - [ ] **FR-001**: Registro y login local ← Fase 2 (T016-T018, T017A)
 - [ ] **FR-002**: JWT acceso 24h ← Fase 2 (T015)
 - [ ] **FR-003**: Password hash bcrypt ← Fase 2 (T012, T014)
-- [ ] **FR-004**: Auth requerida en perfil y oraculo ← Fase 3 (T027) + Fase 4 (T045)
-- [ ] **FR-005**: Autorización roles owner/admin ← Fase 3 (T025, T030) + Fase 5 (T051-T054)
-- [ ] **FR-006**: Admin de solo lectura global ← Fase 5 (T051-T054)
-- [ ] **FR-007**: Owner edita solo propias mejoras ← Fase 3 (T030)
-- [ ] **FR-008**: Persistencia upgrades ← Fase 3 (T023, T030)
-- [ ] **FR-009**: Historial y partida en curso (checkpoint/resume) ← Fase 5 (T049-T050, T055A-T055E)
-- [ ] **FR-010**: Endpoints REST ← Fases 2-5 completas
-- [ ] **FR-011**: Oráculo baja probabilidad + garantía ← Fase 4 (T042-T048B)
-- [ ] **FR-012**: Respuesta correcta → recompensa ← Fase 4 (T043-T048)
-- [ ] **FR-013**: Respuesta incorrecta → daño ← Fase 4 (T043-T048)
-- [ ] **FR-014**: OpenTDB + fallback local ← Fase 4 (T037-T041)
-- [ ] **FR-015**: Frontend usa API propia (cero OpenTDB directo) ← Fase 6 (T072)
+- [ ] **FR-004**: Auth requerida en perfil y oraculo ← Fase 3 (T040) + Fase 4 (T058)
+- [ ] **FR-005**: Autorización roles owner/admin ← Fase 3 (T038, T043) + Fase 5 (T064-T067)
+- [ ] **FR-006**: Admin de solo lectura global ← Fase 5 (T064-T067)
+- [ ] **FR-007**: Owner edita solo propias mejoras ← Fase 3 (T043)
+- [ ] **FR-008**: Persistencia upgrades ← Fase 3 (T036, T043)
+- [ ] **FR-009**: Historial y partida en curso (checkpoint/resume) ← Fase 5 (T062-T063, T068A-T068E)
+- [ ] **FR-010**: Endpoints REST ← Fases 2-6 completas
+- [ ] **FR-011**: Oráculo baja probabilidad + garantía ← Fase 4 (T055-T061B)
+- [ ] **FR-012**: Respuesta correcta → recompensa ← Fase 4 (T056-T061)
+- [ ] **FR-013**: Respuesta incorrecta → daño ← Fase 4 (T056-T061)
+- [ ] **FR-014**: OpenTDB + fallback local ← Fase 4 (T050-T054)
+- [ ] **FR-015**: Frontend usa API propia (cero OpenTDB directo) ← Fase 6 (T085)
 - [ ] **FR-016**: Registro + login + auth + autorizacion demostrado ← Fases 2-5 + Fase 9 (demo)
-- [ ] **FR-017**: Trazabilidad de errores externos ← Fase 4 (T037-T042, T041A)
+- [ ] **FR-017**: Trazabilidad de errores externos ← Fase 4 (T050-T055, T054A)
 
 ### Métricas de Éxito (SC)
 
 - [ ] **SC-001**: Flujos rubrica demostrados sin bypass ← Fase 9 (T088-T089)
-- [ ] **SC-002**: p95 < 2s en login/perfil (bajo carga academica) ← Fase 8-9 (T081A, T094A)
-- [ ] **SC-003**: 100% actualizaciones upgrades persistidas ← Fase 3 (T030) + tests
-- [ ] **SC-004**: Oráculo aparece ≥ 1 por run ← Fase 4 (T048A-T048B)
-- [ ] **SC-005**: Fallback sin interrupciones ← Fase 4 (T042) + Fase 9 (demo)
-- [ ] **SC-006**: Respuestas correctas/incorrectas aplicadas ← Fase 4 (T043-T048)
-- [ ] **SC-007**: 0 llamadas directas OpenTDB ← Fase 6 (T072)
+- [ ] **SC-002**: p95 < 2s en login/perfil (bajo carga academica) ← Fase 8-9 (T030A, T094A)
+- [ ] **SC-003**: 100% actualizaciones upgrades persistidas ← Fase 3 (T043) + tests
+- [ ] **SC-004**: Oráculo aparece ≥ 1 por run ← Fase 4 (T061A-T061B)
+- [ ] **SC-005**: Fallback sin interrupciones ← Fase 4 (T055) + Fase 9 (demo)
+- [ ] **SC-006**: Respuestas correctas/incorrectas aplicadas ← Fase 4 (T056-T061)
+- [ ] **SC-007**: 0 llamadas directas OpenTDB ← Fase 6 (T085)
 
 ---
 
@@ -523,17 +523,17 @@ Fase 9 (Validation) ← Todas fases completadas
 |------|-------|-------------|---|---|
 | 1 | 10 | Setup, config, models base | Ninguna | 2h |
 | 2 | 14 | Auth, JWT, password hash, hardening seguridad | Fase 1 | 8h |
-| 3 | 10 | Profile, CRUD, authz owner | Fase 2 | 5h |
-| 4 | 20 | Oracle, OpenTDB, fallback, trazabilidad, garantía | Fase 3 | 12h |
-| 5 | 13 | Admin, runs history, checkpoint/resume | Fase 4 | 7h |
-| 6 | 16 | Components Vue3, API client | Fase 5 | 8h |
-| 7 | 9 | Backlog expandible de mejoras gameplay/UX | Fase 6 | 4h |
-| 8 | 14 | Docker, compose, Actions, performance smoke | Fases 6-7 | 7h |
+| 3 | 14 | Docker, compose, Actions, performance smoke | Fase 2 | 7h |
+| 4 | 10 | Profile, CRUD, authz owner | Fase 3 | 5h |
+| 5 | 20 | Oracle, OpenTDB, fallback, trazabilidad, garantía | Fase 4 | 12h |
+| 6 | 13 | Admin, runs history, checkpoint/resume | Fase 5 | 7h |
+| 7 | 16 | Components Vue3, API client | Fase 6 | 8h |
+| 8 | 9 | Backlog expandible de mejoras gameplay/UX | Fase 7 | 4h |
 | 9 | 10 | Coverage, demo, docs, benchmark reproducible | Todas | 5h |
 | **TOTAL** | **116** | | | **~58h** |
 
-**Scope MVP (Backend listo sin Docker)**: Fases 1-6 completas + Fase 7 (mejoras generales)
-**Scope MVP (Solemne 3 Mínimo)**: Fases 1-8 completas
+**Scope MVP (Backend listo sin Docker)**: Fases 1-7 completas + Fase 8 (mejoras generales)
+**Scope MVP (Solemne 3 Mínimo)**: Fases 1-8 completas (con Docker en Fase 3)
 **Scope Completo**: Todas las fases = ~58h
 
 ---
@@ -542,10 +542,10 @@ Fase 9 (Validation) ← Todas fases completadas
 
 1. **Validar este plan** con equipo (revisar dependencias, paralelización)
 2. **Ejecutar Fase 1-2** en paralelo con setup de repositorio
-3. **Iterar Fase 3-4-5** con TDD (tests first)
-4. **Integrar frontend Fase 6** una vez API prototipada
-5. **Refinar backlog de mejoras en Fase 7** antes de definir contenido específico
-6. **Validar Docker Fase 8** en environment de CI
+3. **Validar Docker Fase 3** en environment de CI
+4. **Iterar Fase 4-5-6** con TDD (tests first)
+5. **Integrar frontend Fase 7** una vez API prototipada
+6. **Refinar backlog de mejoras en Fase 8** antes de definir contenido específico
 7. **Demostración Fase 9** con script y evidencia en DEMO_CHECKLIST.md
 
 ## Criterio de Cierre (Salida de Draft)
