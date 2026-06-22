@@ -31,20 +31,20 @@ Proyecto fullstack con backend independiente en carpeta `backend/` que:
 
 ### T001 Crear estructura de carpetas del backend
 
-- [ ] T001 Crear carpeta backend con estructura según plan.md en `backend/` — `backend/src/`, `backend/tests/`, `backend/src/config/`
+- [X] T001 Crear carpeta backend con estructura según plan.md en `backend/` — `backend/src/`, `backend/tests/`, `backend/src/config/`
 
 ### T002-T005 Inicializar configuración centralizada
 
-- [ ] T002 [P] Crear archivo de configuración variables entorno en `backend/src/config/env.js` — `backend/.env.example` con variables del plan
-- [ ] T003 [P] Crear modulo logger centralizado en `backend/src/config/logger.js`
-- [ ] T004 [P] Crear modulo conexion MongoDB en `backend/src/config/db.js`
-- [ ] T005 [P] Crear archivo raiz `backend/src/app.js` con instancia Express basica
+- [X] T002 [P] Crear archivo de configuración variables entorno en `backend/src/config/env.js` — `backend/.env.example` con variables del plan
+- [X] T003 [P] Crear modulo logger centralizado en `backend/src/config/logger.js`
+- [X] T004 [P] Crear modulo conexion MongoDB en `backend/src/config/db.js`
+- [X] T005 [P] Crear archivo raiz `backend/src/app.js` con instancia Express basica
 
 ### T006-T008 Inicializar dependencias y package.json
 
-- [ ] T006 Crear `backend/package.json` con dependencias para Express, Mongoose, bcrypt, jsonwebtoken, dotenv, zod, axios
-- [ ] T007 [P] Crear `backend/src/server.js` que levanta app y MongoDB
-- [ ] T008 [P] Crear `backend/tests/setup.js` con configuracion vitest y connection mongo-memory-server
+- [X] T006 Crear `backend/package.json` con dependencias para Express, Mongoose, bcrypt, jsonwebtoken, dotenv, zod, axios
+- [X] T007 [P] Crear `backend/src/server.js` que levanta app y MongoDB
+- [X] T008 [P] Crear `backend/tests/setup.js` con configuracion vitest y connection mongo-memory-server
 
 ### T009-T010 Modelos esqueleto (TDD)
 
